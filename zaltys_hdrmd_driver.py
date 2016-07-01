@@ -90,12 +90,12 @@ class HDRMDCONFIG(ctypes.Structure):
 
 
 #
-# Zaltys HDRM Demodulator driver class
+# HDRM Demodulator driver class
 #
 # Instantiate a single instance of this class with an smpi_gateway
 # object and appropriate base_address and sample_rate values.
 #
-class ZaltysHdrmdDriver (object):
+class HdrmdDriver (object):
     '''
         Configuration wrapper for the Zaltys HDRM Demodulator
     '''

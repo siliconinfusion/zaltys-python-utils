@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 '''
     Author        : Paul Onions
     Creation date : 16 December 2015
@@ -28,13 +30,13 @@
 import os
 import sys
 
-import zwire
-import smpi_gateway
+import zaltys_zwire
+import zaltys_smpi_gateway
 import zaltys_ad9361_driver
 
-zwire   = zwire.ZwireSPI(dspi=0)
-gateway = smpi_gateway.ZwireSmpiGateway(zwire)
-ad9361  = zaltys_ad9361_driver.ZaltysAD9361Driver(gateway, smpi2spi_base_address=0x00080000)
+zwire   = zaltys_zwire.ZwireSPI(dspi=0)
+gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
+ad9361  = zaltys_ad9361_driver.AD9361Driver(gateway, smpi2spi_base_address=0x00080000)
 
 print("Initializing AD9361...\n")
 ad9361.init_ad9361(interface="CMOS")

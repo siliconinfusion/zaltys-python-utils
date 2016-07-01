@@ -1,7 +1,4 @@
-#!/usr/bin/python3
-
-'''
-    Author        : Paul Onions
+'''Author        : Paul Onions
     Creation date : 16 December 2015
 
     COMMERCIAL IN CONFIDENCE
@@ -24,31 +21,36 @@
     restriction on reproduction and use extend to all media in which the
     information may be embodied.
 
-    A test command for the smpi_gateway module.
+    Expose SMPI register read/write methods via a gateway object.
+    This extra level of indirection allows easily changing to alternative
+    access mechanisms (e.g. SPI or PCI).
+
 '''
 
-import os
 import time
-import sys
 
-import zwire
-import smpi_gateway
+class SmpiGateway(object):
+    '''
+        Coordinate accesses to/from SMPI bus registers
+    '''
+    def __init__(self):
+        pass
 
-if len(sys.argv) != 4:
-    print '''usage: smpi_gateway_test <dspi_number> <address> <data>'''
-    exit(1)
 
-dspi    = int(sys.argv[1],0)
-address = int(sys.argv[2],0)
-wrdat   = int(sys.argv[3],0)
+class ZwireSmpiGateway(SmpiGateway):
+    '''
+        Coordinate access to SMPI registers via a Zwire interface object
+    '''
+    def __init__(self, zwire):
+        self.zwire = zwire
+        zwire.open()
 
-zwire = zwire.ZwireSPI(dspi)
-gateway = smpi_gateway.ZwireSmpiGateway(zwire)
+    def __del__(self):
+        self.zwire.close()
 
-gateway.register_write(address, wrdat)
-print 'WROTE: 0x{0:08x} : '.format(address), '0x{0:08x}'.format(wrdat)
+    def register_write(self, address, data):
+        self.zwire.write(address, data)
 
-time.sleep(1)
-
-rddat = gateway.register_read(address)
-print 'READ : 0x{0:08x} : '.format(address), '0x{0:08x}'.format(rddat)
+    def register_read(self, address):
+        rdata = self.zwire.read(address)
+        return rdata

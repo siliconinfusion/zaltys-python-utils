@@ -96,7 +96,7 @@ def wait_for_spi_ready():
 # method.  After this you can call set_ad9361_configuration() or
 # get_ad9361_configuration() as desired.
 #
-class ZaltysAD9361Driver (object):
+class AD9361Driver (object):
     '''
         Configuration wrapper for the AD9361 driver
     '''

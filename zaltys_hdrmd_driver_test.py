@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 '''
     Author        : Paul Onions
     Creation date : 24 September 2015
@@ -28,13 +30,13 @@
 import os
 import sys
 
-import zwire
-import smpi_gateway
-import hdrmd_driver
+import zaltys_zwire
+import zaltys_smpi_gateway
+import zaltys_hdrmd_driver
 
-zwire   = zwire.ZwireDummy()
-gateway = smpi_gateway.ZwireSmpiGateway(zwire)
-hdrmd   = zaltys_hdrmd_driver.ZaltysHdrmdDriver(gateway, base_address=0x00000400, sample_rate=125000000)
+zwire   = zaltys_zwire.ZwireDummy()
+gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
+hdrmd   = zaltys_hdrmd_driver.HdrmdDriver(gateway, base_address=0x00000400, sample_rate=125000000)
 
 print('Configuring demodulator (modulation_scheme="QPSK", symbol_rate=1000000, rrc_alpha=20)...\n')
 hdrmd.configure_demod(modulation_scheme="QPSK", symbol_rate=1000000, rrc_alpha=20)
