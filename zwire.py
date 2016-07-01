@@ -116,7 +116,7 @@ class ZwireDummy(Zwire):
         '''
             Initialise
         '''
-        print "ZwireDummy __init__ " + str(dspi)
+        print("ZwireDummy __init__ " + str(dspi))
         self.bus = 'Dummy'
         self.dspi=dspi
 
@@ -124,20 +124,20 @@ class ZwireDummy(Zwire):
         '''
             Do nothing
         '''
-        print "ZwireDummy open"
+        print("ZwireDummy open")
                 
     def read(self, _addr):
         '''
             Pretend to read the single value at _addr.  Return the value read.
         '''
-        print "ZwireDummy read " + str(_addr)
+        print("ZwireDummy read " + str(_addr))
         return 0
         
     def seqRead(self, _addr, _count):
         '''
             Pretend to read multiple values from _addr.  Return a list of values read.
         '''
-        print "ZwireDummy SeqRead " + str(_addr) + " " + str(_count)
+        print("ZwireDummy SeqRead " + str(_addr) + " " + str(_count))
         ret = []
         for n in range(0, _count):
             ret.append(0)
@@ -147,19 +147,19 @@ class ZwireDummy(Zwire):
         '''
             Pretend to write a single value, _data, to _addr.
         '''
-        print "ZwireDummy write " + str(_addr) + " " + str(_data)
+        print("ZwireDummy write " + str(_addr) + " " + str(_data))
         return 0
         
     def seqWrite(self, _addr, _data):
         '''
             Pretend to write a list of values, _data, to _addr.
         '''
-        print "ZwireDummy seqWrite " + str(_addr) + " " + str(_data)
+        print("ZwireDummy seqWrite " + str(_addr) + " " + str(_data))
         return 0
         
     def close(self):
         '''
             Do nothing
         '''
-        print "ZwireDummy close"
+        print("ZwireDummy close")
 
