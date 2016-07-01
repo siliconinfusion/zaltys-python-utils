@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 '''
     Author        : Paul Onions
     Creation date : 24 September 2015
@@ -25,6 +23,9 @@
     information may be embodied.
 
     Test the Zaltys HDRM Demodulator driver wrapper.
+
+    Invoke at a shell prompt with:-
+      python3 zaltys_hdrmd_driver_test.py
 '''
 
 import os

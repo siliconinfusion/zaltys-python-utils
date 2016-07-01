@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 '''
     Author        : Paul Onions
     Creation date : 16 December 2015
@@ -25,6 +23,9 @@
     information may be embodied.
 
     A test for the Zaltys AD9361 driver wrapper.
+
+    Invoke at a shell prompt with:-
+      python3 zaltys_ad9361_driver_test.py
 '''
 
 import os
