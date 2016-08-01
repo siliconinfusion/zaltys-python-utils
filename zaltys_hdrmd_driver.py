@@ -104,8 +104,7 @@ class HdrmdDriver (object):
 
         # Initialize module variables
         g_smpi_gateway = smpi_gateway
-        dllabspath = os.path.dirname(__file__) + '/usr/lib/libzaltys-hdrmd.so'
-        g_lib = ctypes.CDLL(dllabspath)
+        g_lib = ctypes.CDLL('/usr/lib/libzaltys-hdrmd.so')
 
         # Setup callback functions
         #

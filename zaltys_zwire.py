@@ -47,8 +47,7 @@ class ZwireSPI(Zwire):
         '''
         self.bus = 'SPI'
         self.dspi=dspi
-        dllabspath = os.path.dirname(__file__) + '/usr/lib/libzaltys-zwire.so'
-        self.lib = ctypes.CDLL(dllabspath)
+        self.lib = ctypes.CDLL('/usr/lib/libzaltys-zwire.so')
        
     def open(self):
         '''

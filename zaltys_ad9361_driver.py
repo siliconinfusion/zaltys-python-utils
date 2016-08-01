@@ -106,8 +106,7 @@ class AD9361Driver (object):
         # Initialize module variables
         g_smpi_gateway = smpi_gateway
         g_smpi2spi_base_address = smpi2spi_base_address
-        dllabspath = os.path.dirname(__file__) + '/usr/lib/libzaltys-ad9361.so'
-        g_lib = ctypes.CDLL(dllabspath)
+        g_lib = ctypes.CDLL('/usr/lib/libzaltys-ad9361.so')
         g_lib.ad9361_cmos_init.restype = ctypes.c_void_p
         g_lib.ad9361_lvds_init.restype = ctypes.c_void_p
         g_lib.ad9361_write_rxbuf.restype = None
