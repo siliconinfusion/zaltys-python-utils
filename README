@@ -1,0 +1,37 @@
+ZALTYS-PYTHON-UTILS
+===================
+
+Python3 utilities for the Zaltys platform.
+
+
+zaltys_zwire
+------------
+A python3 module wrapper for the libzaltys-zwire shared-object library.
+
+
+zspiread & zspiwrite
+--------------------
+Shell commands for Zwire SPI reads and writes.
+
+
+zaltys_smpi_gateway
+-------------------
+A python3 module that allows the SMPI bus access mechanism (e.g. Zwire
+SPI or PCIe) to be abstracted away from hardware register read/writes.
+Thus changing the bus access mechanism will not require changing
+higher level source code.
+
+
+zaltys_hdrmd_driver
+-------------------
+A python3 module wrapper for the libzaltys-hdrmd shared-object library.
+
+
+zaltys_plsv_utils
+-----------------
+Utilities for DVB-S2(X) frame properties based on PLS value lookup.
+
+
+--
+Silicon Infusion Ltd
+8 August 2016
