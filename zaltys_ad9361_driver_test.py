@@ -35,11 +35,11 @@ gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
 ad9361  = zaltys_ad9361_driver.AD9361Driver(gateway, smpi2spi_base_address=0x00080000)
 
 print("Initializing AD9361...\n")
-ad9361.init_ad9361(interface="CMOS")
+ad9361.init_ad9361(interface="LVDS")
 print("Done\n")
 
-print("Writing configuration (sample_rate=61440000, tx_carrier_freq=1000000000, rx_carrier_freq=1000000000)...\n")
-ad9361.set_ad9361_configuration(sample_rate=61440000, tx_carrier_freq=1000000000, rx_carrier_freq=1000000000)
+print("Writing configuration (sample_rate=100000000, tx_carrier_freq=1000000000, rx_carrier_freq=1000000000)...\n")
+ad9361.set_ad9361_configuration(sample_rate=100000000, tx_carrier_freq=1000000000, rx_carrier_freq=1000000000)
 print("Done\n")
 
 print("Reading back configuration...")
