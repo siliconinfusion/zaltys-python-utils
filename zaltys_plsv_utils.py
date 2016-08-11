@@ -171,4 +171,4 @@ bb_bytes = [
 
 # API functions
 def bbframe_byte_length(plsv):
-    return bb_bytes[plsv/2]
+    return bb_bytes[plsv//2]
