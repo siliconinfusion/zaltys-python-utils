@@ -39,8 +39,5 @@ wrdat   = int(sys.argv[3],0)
 zwire = zaltys_zwire.ZwireSPI(dspi)
 
 zwire.open()
-
 zwire.write(address, wrdat)
-print('WRITE: 0x{0:01x}'.format(dspi), '0x{0:08x}'.format(address), '0x{0:08x}'.format(wrdat))
-
 zwire.close()

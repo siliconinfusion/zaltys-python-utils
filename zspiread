@@ -38,8 +38,6 @@ address = int(sys.argv[2],0)
 zwire = zaltys_zwire.ZwireSPI(dspi)
 
 zwire.open()
-
 rddat = zwire.read(address)
-print('READ : 0x{0:01x}'.format(dspi), '0x{0:08x}'.format(address), '0x{0:08x}'.format(rddat))
-
+print('0x{0:08x}'.format(rddat))
 zwire.close()
