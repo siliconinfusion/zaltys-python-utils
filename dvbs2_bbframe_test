@@ -1,0 +1,129 @@
+#!/usr/bin/python3
+
+##
+##  Author        : Paul Onions
+##  Creation date : 8 August 2016
+##
+##  Copyright 2016 Silicon Infusion Limited
+##
+##  Silicon Infusion Limited                 
+##  CP House
+##  Otterspool Way
+##  Watford WD25 8HP
+##  Hertfordshire, UK
+##  Tel: +44 (0)1923 650404
+##  Fax: +44 (0)1923 650374
+##  Web: www.siliconinfusion.com
+##
+##  Licence: MIT, see LICENCE file for details.
+##
+
+##
+## BBFRAME loopback test of DVB-S2 modem
+##
+
+import sys
+import time
+import ctypes
+
+import zaltys_zwire
+import zaltys_smpi_gateway
+import zaltys_plsv_utils
+
+# Check command-line arguments
+if len(sys.argv) != 1 and len(sys.argv) != 2:
+    print('usage: dvbs2_bbframe_test [plsv]')
+    exit(1)
+
+if len(sys.argv) == 1:
+    plsv = 4
+    inband_plsv = False
+else:
+    plsv = int(sys.argv[1])
+    inband_plsv = True
+
+# Setup SMPI gateway
+zwire   = zaltys_zwire.ZwireSPI(dspi=0)
+gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
+
+def reg_read(address):
+    return gateway.register_read(address)
+
+def reg_write(address, data):
+    gateway.register_write(address, data)
+
+# Setup streaming data interfaces
+print('Resetting streaming interfaces')
+reg_write(0x3020, 0x00000001)
+reg_write(0x3030, 0x00000001)
+
+reg_write(0x3029, 4*2**16)  # default OOB PLSV
+reg_write(0x3039, 0)
+
+if not inband_plsv:
+    reg_write(0x3029, reg_read(0x3029)+1)
+    reg_write(0x3039, reg_read(0x3039)+1)
+
+time.sleep(0.5)
+reg_write(0x3020, 0x00000000)
+reg_write(0x3030, 0x00000000)
+
+# Reading FIFO levels
+print('TxFrame FIFO Level : {}'.format(reg_read(0x3025)))
+print('RxFrame FIFO Level : {}'.format(reg_read(0x3035)))
+
+num_bbframe_bytes = zaltys_plsv_utils.bbframe_byte_length(plsv)
+
+reg_write(0x3026, 0x00000008)  # SOF marker
+if inband_plsv:
+    print('Writing 2-byte inband PLSV to TxFrame FIFO')
+    reg_write(0x3027, 2)  # BNV = 2
+    reg_write(0x3028, plsv*2**16)
+
+print('Writing {} bytes of BBFRAME data to TxFrame FIFO'.format(num_bbframe_bytes))
+num_whole_words = num_bbframe_bytes//4
+num_remaining_bytes = num_bbframe_bytes%4
+for n in range(num_whole_words):
+    reg_write(0x3028, ((4*n)%256)*2**24 + ((4*n+1)%256)*2**16 + ((4*n+2)%256)*2**8 + ((4*n+3)%256))
+if num_remaining_bytes != 0:
+    reg_write(0x3027, 4 - num_remaining_bytes)  # BNV
+    reg_write(0x3028, ((4*num_whole_words)%256)*2**24 + ((4*num_whole_words+1)%256)*2**16 + ((4*num_whole_words+2)%256)*2**8 + ((4*num_whole_words+3)%256))
+
+# Reading FIFO levels
+print('TxFrame FIFO Level : {}'.format(reg_read(0x3025)))
+print('RxFrame FIFO Level : {}'.format(reg_read(0x3035)))
+
+print('Sleeping 100ms')
+time.sleep(0.1)
+
+print('TxFrame FIFO Level : {}'.format(reg_read(0x3025)))
+print( 'RxFrame FIFO Level : {}'.format(reg_read(0x3035)))
+
+time.sleep(0.1)
+
+num_bytes_to_read = num_bbframe_bytes
+if inband_plsv:
+    num_bytes_to_read = num_bytes_to_read + 2
+
+num_bursts_to_read = num_bytes_to_read//32
+if num_bytes_to_read%32 != 0:
+    num_bursts_to_read = num_bursts_to_read + 1
+
+print('Reading first burst...')
+for n in range(8):
+    print('RxFRAME DATA : 0x{0:08x}'.format(reg_read(0x3038)))
+print('RxFRAME SOF  : 0x{0:08x}'.format(reg_read(0x3036)))
+print('RxFRAME BNV  : 0x{0:08x}'.format(reg_read(0x3037)))
+
+print('Reading mid bursts silently...')
+for n in range(8*(num_bursts_to_read - 2)):
+    reg_read(0x3038)
+
+print('Reading last burst...')
+for n in range(8):
+    print('RxFRAME DATA : 0x{0:08x}'.format(reg_read(0x3038)))
+print('RxFRAME SOF  : 0x{0:08x}'.format(reg_read(0x3036)))
+print('RxFRAME BNV  : 0x{0:08x}'.format(reg_read(0x3037)))
+
+print('TxFrame FIFO Level : {}'.format(reg_read(0x3025)))
+print('RxFrame FIFO Level : {}'.format(reg_read(0x3035)))

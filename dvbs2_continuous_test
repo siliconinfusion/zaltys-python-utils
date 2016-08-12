@@ -1,0 +1,186 @@
+#!/usr/bin/python3
+
+##
+##  Author        : Paul Onions
+##  Creation date : 4 August 2016
+##
+##  Copyright 2016 Silicon Infusion Limited
+##
+##  Silicon Infusion Limited                 
+##  CP House
+##  Otterspool Way
+##  Watford WD25 8HP
+##  Hertfordshire, UK
+##  Tel: +44 (0)1923 650404
+##  Fax: +44 (0)1923 650374
+##  Web: www.siliconinfusion.com
+##
+##  Licence: MIT, see LICENCE file for details.
+##
+
+##
+## Integration test of DVB-S2 modem
+##
+
+import sys
+import time
+import ctypes
+
+import zaltys_zwire
+import zaltys_smpi_gateway
+import zaltys_plsv_utils
+
+# Check command-line arguments
+if len(sys.argv) != 1:
+    print('usage: dvbs2_continuous_test')
+    exit(1)
+
+# Setup SMPI gateway
+zwire   = zaltys_zwire.ZwireSPI(dspi=0)
+gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
+
+def reg_read(address):
+    return gateway.register_read(address)
+
+def reg_write(address, data):
+    gateway.register_write(address, data)
+
+# PRBS generator
+lfsr_state = 1
+
+def lfsr_byte():
+    global lfsr_state
+    for n in range(8):
+        lfsr_state = (2*lfsr_state + (((lfsr_state & (1<<10))>>10) ^ ((lfsr_state & (1<<8))>>8))) % 2048
+    return lfsr_state % 256
+
+# Frame transfer and checking routines
+def send_frame(plsv):
+    # Generate data for BBFRAME
+    num_bytes = zaltys_plsv_utils.bbframe_byte_length(plsv)
+    num_whole_words = num_bytes//4
+    num_remaining_bytes = num_bytes%4
+    data = [0] * (4*(num_whole_words+1))
+    for n in range(num_bytes):
+        data[n] = lfsr_byte()
+
+    # Write PLSV 2-byte header
+    reg_write(0x3026, 0x00000008)  # SOF marker
+    reg_write(0x3027, 2)  # BNV = 2
+    reg_write(0x3028, plsv*2**16)
+
+    # Write data bytes
+    for n in range(num_whole_words):
+        reg_write(0x3028, data[4*n]*2**24 + data[4*n+1]*2**16 + data[4*n+2]*2**8 + data[4*n+3])
+    if num_remaining_bytes != 0:
+        reg_write(0x3027, 4 - num_remaining_bytes)  # BNV
+        reg_write(0x3028, data[4*num_whole_words]*2**24 + data[4*num_whole_words+1]*2**16 + data[4*num_whole_words+2]*2**8 + data[4*num_whole_words+3])
+    
+    return data[0:num_bytes]
+
+def read_data_burst(burst_data, burst_sof, burst_nv):
+    # Read data bytes
+    for n in range(8):
+        data = reg_read(0x3038)
+        burst_data[4*n  ] = (data >> 24) & 0xFF
+        burst_data[4*n+1] = (data >> 16) & 0xFF
+        burst_data[4*n+2] = (data >>  8) & 0xFF
+        burst_data[4*n+3] =  data        & 0xFF
+
+    # Read SOF indications
+    sof = reg_read(0x3036)
+    for n in range(8):
+        burst_sof[4*n  ] = (sof >> (4*(7-n)+3)) & 0x1
+        burst_sof[4*n+1] = (sof >> (4*(7-n)+2)) & 0x1
+        burst_sof[4*n+2] = (sof >> (4*(7-n)+1)) & 0x1
+        burst_sof[4*n+3] = (sof >> (4*(7-n)  )) & 0x1
+
+    # Read BNV indications
+    bnv = reg_read(0x3037)
+    for n in range(8):
+        nvc = (bnv >> (4*(7-n))) & 0x7
+        burst_nv[4*n  ] = 1 if nvc >= 4 else 0
+        burst_nv[4*n+1] = 1 if nvc >= 3 else 0
+        burst_nv[4*n+2] = 1 if nvc >= 2 else 0
+        burst_nv[4*n+3] = 1 if nvc >= 1 else 0
+
+errors_detected = False
+
+def check_data_burst(burst_num, burst_data, burst_sof, burst_nv, expected_burst_data, expected_burst_sof, expected_burst_nv):
+    global errors_detected
+    for n in range(32):
+        if burst_nv[n] != expected_burst_nv[n]:
+            print('  ERROR: burst {}, byte {}, BNV mismatch'.format(burst_num, n))
+            errors_detected = True
+        elif burst_nv[n] == 0:
+            if burst_sof[n] != expected_burst_sof[n]:
+                print('  ERROR: burst {}, byte {}, SOF mismatch'.format(burst_num, n))
+                errors_detected = True
+            if burst_data[n] != expected_burst_data[n]:
+                print('  ERROR: burst {}, byte {}, data mismatch'.format(burst_num, n))
+                errors_detected = True
+    if errors_detected:
+        print('  BURST DATA = {}'.format(burst_data))
+        print('  BURST SOF  = {}'.format(burst_sof))
+        print('  BURST NV   = {}'.format(burst_nv))
+        print('  EXPCT DATA = {}'.format(expected_burst_data))
+        print('  EXPCT SOF  = {}'.format(expected_burst_sof))
+        print('  EXPCT NV   = {}'.format(expected_burst_nv))
+    
+def recv_frame(plsv, data):
+    # Determine how many bursts needed to read entire BBFRAME
+    num_bytes_to_read = zaltys_plsv_utils.bbframe_byte_length(plsv) + 2
+    num_bursts_to_read = num_bytes_to_read//32 + (1 if num_bytes_to_read%32 != 0 else 0)
+    expected_data = [plsv//256, plsv%256] + data + [0]*(32*num_bursts_to_read - num_bytes_to_read)
+    burst_data = [0] * 32
+    burst_sof = [0] * 32
+    burst_nv = [0] * 32
+
+    # Read and check first burst
+    read_data_burst(burst_data, burst_sof, burst_nv)
+    expected_burst_data = expected_data[0:32]
+    expected_burst_sof = [1] + [0]*31
+    expected_burst_nv = [0]*32
+    check_data_burst(0, burst_data, burst_sof, burst_nv, expected_burst_data, expected_burst_sof, expected_burst_nv)
+    
+    # Read and check middle bursts
+    for n in range(1,num_bursts_to_read-1):
+        read_data_burst(burst_data, burst_sof, burst_nv)
+        expected_burst_data = expected_data[32*n:32*n+32]
+        expected_burst_sof = [0]*32
+        expected_burst_nv = [0]*32
+        check_data_burst(n, burst_data, burst_sof, burst_nv, expected_burst_data, expected_burst_sof, expected_burst_nv)
+
+    # Read and check final burst
+    read_data_burst(burst_data, burst_sof, burst_nv)
+    expected_burst_data = expected_data[32*(num_bursts_to_read-1):32*num_bursts_to_read]
+    expected_burst_sof = [0]*32
+    expected_burst_nv = [0]*(num_bytes_to_read%32) + [1]*(32 - (num_bytes_to_read%32))
+    check_data_burst(num_bursts_to_read-1, burst_data, burst_sof, burst_nv, expected_burst_data, expected_burst_sof, expected_burst_nv)
+
+# Main test loop
+dvbs2_pls_values = list(range(4,46)) + list(range(48,70)) + list(range(72,94)) + list(range(96,114))
+dvbs2x_pls_values = list(range(132,176)) + list(range(178,188)) + list(range(190,192)) + list(range(194,196)) + list(range(198,200)) + list(range(216,250))  # No 128/256 APSK
+
+print('Resetting streaming interfaces')
+reg_write(0x3020, 0x00000001)
+reg_write(0x3030, 0x00000001)
+
+reg_write(0x3029, 4*2**16)
+reg_write(0x3039, 0)
+
+time.sleep(0.5)
+reg_write(0x3020, 0x00000000)
+reg_write(0x3030, 0x00000000)
+
+while True:
+    for plsv in (dvbs2_pls_values + dvbs2x_pls_values):
+        print('PLSV = {}, transferring {} data bytes'.format(plsv, zaltys_plsv_utils.bbframe_byte_length(plsv)))
+        data = send_frame(plsv)
+        time.sleep(0.5)
+        recv_frame(plsv, data)
+
+        if errors_detected:
+            print('*** ERRORS DETECTED ***')
+            exit(1)
+
