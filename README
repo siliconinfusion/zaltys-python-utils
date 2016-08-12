@@ -32,6 +32,12 @@ zaltys_plsv_utils
 Utilities for DVB-S2(X) frame properties based on PLS value lookup.
 
 
+dvbs2_bbframe_test & dvbs2_continuous_test
+------------------------------------------
+Example code that sends and receives BBFRAMEs via the ZMP003 DVB-S2(X)
+modem in loopback configuration.
+
+
 --
 Silicon Infusion Ltd
-8 August 2016
+12 August 2016
