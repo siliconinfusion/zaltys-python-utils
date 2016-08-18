@@ -20,7 +20,7 @@
 ##  Test the Zaltys HDRM Demodulator driver wrapper.
 ##
 ##  Invoke at a shell prompt with:-
-##    python3 zaltys_hdrmd_driver_test.py
+##    python zaltys_hdrmd_driver_test.py
 ##
 
 import os

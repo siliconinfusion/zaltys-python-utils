@@ -20,7 +20,7 @@
 ##  A test for the Zaltys AD9361 driver wrapper.
 ##
 ##  Invoke at a shell prompt with:-
-##    python3 zaltys_ad9361_driver_test.py
+##    python zaltys_ad9361_driver_test.py
 ##
 
 import os
