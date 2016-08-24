@@ -22,6 +22,11 @@ Thus changing the bus access mechanism will not require changing
 higher level source code.
 
 
+zaltys_ad9361_driver
+-------------------
+A python module wrapper for the libzaltys-ad9361 shared-object library.
+
+
 zaltys_hdrmd_driver
 -------------------
 A python module wrapper for the libzaltys-hdrmd shared-object library.
@@ -40,4 +45,4 @@ modem in loopback configuration.
 
 --
 Silicon Infusion Ltd
-12 August 2016
+24 August 2016
