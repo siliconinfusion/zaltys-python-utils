@@ -26,14 +26,12 @@
 import os
 import sys
 
-import zaltys_zwire
 import zaltys_smpi_gateway
 import zaltys_hdrmd_driver
 
-zwire   = zaltys_zwire.ZwireDummy()
-gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
+gateway = zaltys_smpi_gateway.DummySmpiGateway()
 hdrmd   = zaltys_hdrmd_driver.HdrmdDriver(gateway, base_address=0x00000400, sample_rate=125000000)
 
-print('Configuring demodulator (modulation_scheme="QPSK", symbol_rate=1000000, rrc_alpha=20)...\n')
+print('Configuring demodulator (modulation_scheme="QPSK", symbol_rate=1000000, rrc_alpha=20)...')
 hdrmd.configure_demod(modulation_scheme="QPSK", symbol_rate=1000000, rrc_alpha=20)
 print('Done\n')
