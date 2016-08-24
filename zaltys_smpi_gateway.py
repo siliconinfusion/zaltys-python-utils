@@ -21,6 +21,9 @@
 ##  This extra level of indirection allows easily changing to alternative
 ##  access mechanisms (e.g. SPI or PCI).
 ##
+##  Note SmpiGateway objects work with *register* addresses
+##  (register_address = byte_address // 4).
+##
 
 import time
 
@@ -49,3 +52,18 @@ class ZwireSmpiGateway(SmpiGateway):
     def register_read(self, address):
         rdata = self.zwire.read(address)
         return rdata
+
+
+class DummySmpiGateway(SmpiGateway):
+    '''
+        Fake access to SMPI registers
+    '''
+    def __init__(self):
+        print("DummySmpiGateway __init__ ")
+
+    def register_write(self, address, data):
+        print("DummySmpiGateway write 0x{0:08x}".format(address) + " 0x{0:08x}".format(data))
+
+    def register_read(self, address):
+        print("DummySmpiGateway read  0x{0:08x}".format(address))
+        return 0

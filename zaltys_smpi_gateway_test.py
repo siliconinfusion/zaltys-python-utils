@@ -41,9 +41,9 @@ zwire = zaltys_zwire.ZwireSPI(dspi)
 gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
 
 gateway.register_write(address, wrdat)
-print('WROTE: 0x{0:01x}'.format(dspi), '0x{0:08x}'.format(address), '0x{0:08x}'.format(wrdat))
+print('WROTE: 0x{0:01x}'.format(dspi) + ' 0x{0:08x}'.format(address) + ' 0x{0:08x}'.format(wrdat))
 
 time.sleep(1)
 
 rddat = gateway.register_read(address)
-print('READ : 0x{0:01x}'.format(dspi), '0x{0:08x}'.format(address), '0x{0:08x}'.format(rddat))
+print('READ : 0x{0:01x}'.format(dspi) + ' 0x{0:08x}'.format(address) + ' 0x{0:08x}'.format(rddat))
