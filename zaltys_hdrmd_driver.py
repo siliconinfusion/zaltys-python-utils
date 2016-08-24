@@ -39,7 +39,8 @@ def register_init(config):
     None
 
 def register_write(address, data):
-    g_smpi_gateway.register_write(address, data)
+    # C driver supplies byte-address, need to convert to SMPI register-address
+    g_smpi_gateway.register_write(address//4, data)
 
 def register_barrier():
     None
@@ -125,7 +126,7 @@ class HdrmdDriver (object):
 
         # Initialize default driver parameters
         self.hdrmd_config = HDRMDCONFIG()
-        self.hdrmd_config.base_address           = ctypes.c_ulong(base_address)
+        self.hdrmd_config.base_address           = ctypes.c_ulong(4*base_address)  # convert to byte adress
         self.hdrmd_config.sample_rate            = ctypes.c_uint(sample_rate)
         self.hdrmd_config.datapath_extension     = ctypes.c_uint(datapath_extension)
         self.hdrmd_config.symbol_rate            = ctypes.c_uint(0)
