@@ -89,13 +89,13 @@ class HDRMDCONFIG(ctypes.Structure):
 # HDRM Demodulator driver class
 #
 # Instantiate a single instance of this class with an smpi_gateway
-# object and appropriate base_address and sample_rate values.
+# object and appropriate base_address and datapath_extension values.
 #
 class HdrmdDriver (object):
     '''
         Configuration wrapper for the Zaltys HDRM Demodulator
     '''
-    def __init__(self, smpi_gateway, base_address, sample_rate, datapath_extension=4):
+    def __init__(self, smpi_gateway, base_address, datapath_extension=4):
         global g_smpi_gateway, g_lib
 
         # Initialize module variables
@@ -127,7 +127,7 @@ class HdrmdDriver (object):
         # Initialize default driver parameters
         self.hdrmd_config = HDRMDCONFIG()
         self.hdrmd_config.base_address           = ctypes.c_ulong(4*base_address)  # convert to byte adress
-        self.hdrmd_config.sample_rate            = ctypes.c_uint(sample_rate)
+        self.hdrmd_config.sample_rate            = ctypes.c_uint(100000000)
         self.hdrmd_config.datapath_extension     = ctypes.c_uint(datapath_extension)
         self.hdrmd_config.symbol_rate            = ctypes.c_uint(0)
         self.hdrmd_config.if_freq_offset         = ctypes.c_uint(0)
@@ -158,7 +158,8 @@ class HdrmdDriver (object):
         self.hdrmd_config.search_range           = ctypes.c_uint(5)
         self.hdrmd_config.coarse_steps           = ctypes.c_uint(10)
 
-    def configure_demod(self, modulation_scheme, symbol_rate, rrc_alpha, if_freq_offset=0, aeq_enable=False):
+    def configure_demod(self, sample_rate, symbol_rate, modulation_scheme, rrc_alpha=20, if_freq_offset=0, aeq_enable=False):
+        self.hdrmd_config.sample_rate     = ctypes.c_uint(sample_rate)
         self.hdrmd_config.symbol_rate     = ctypes.c_uint(symbol_rate)
         self.hdrmd_config.rrc_alpha       = ctypes.c_uint(rrc_alpha)
         self.hdrmd_config.if_freq_offset  = ctypes.c_uint(if_freq_offset)
