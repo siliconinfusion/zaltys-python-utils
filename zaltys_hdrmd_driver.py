@@ -20,7 +20,6 @@
 ##  A wrapper for the Zaltys HDRM Demodulator driver (libzaltys-hdrmd.so).
 ##
 
-import os
 import ctypes
 
 #
@@ -121,52 +120,96 @@ class HdrmdDriver (object):
         g_lib.zaltys_hdrm_demod_set_callback_reg_barrier(self.reg_barrier_callback)
 
         DONECBTYPE = ctypes.CFUNCTYPE(None, ctypes.POINTER(HDRMDCONFIG))
-        self.reg_done_callback = INITCBTYPE(register_done)
+        self.reg_done_callback = DONECBTYPE(register_done)
         g_lib.zaltys_hdrm_demod_set_callback_reg_done(self.reg_done_callback)
 
-        # Initialize default driver parameters
-        self.hdrmd_config = HDRMDCONFIG()
-        self.hdrmd_config.base_address           = ctypes.c_ulong(4*base_address)  # convert to byte adress
-        self.hdrmd_config.sample_rate            = ctypes.c_uint(100000000)
-        self.hdrmd_config.datapath_extension     = ctypes.c_uint(datapath_extension)
-        self.hdrmd_config.symbol_rate            = ctypes.c_uint(0)
-        self.hdrmd_config.if_freq_offset         = ctypes.c_uint(0)
-        self.hdrmd_config.spectral_inversion     = ctypes.c_byte(0)
-        self.hdrmd_config.ragc_enable            = ctypes.c_byte(1)
-        self.hdrmd_config.ragc_invert            = ctypes.c_byte(1)
-        self.hdrmd_config.tmtf_is_programmable   = ctypes.c_byte(0)
-        self.hdrmd_config.tmtf_tap_length        = ctypes.c_uint(0)
-        self.hdrmd_config.tmtf_coeff_size        = ctypes.c_uint(0)
-        self.hdrmd_config.rrc_alpha              = ctypes.c_uint(20)
-        self.hdrmd_config.output_amplitude       = ctypes.c_uint(1024)
-        self.hdrmd_config.mer_period             = ctypes.c_uint(10000)
-        self.hdrmd_config.reacq_holdoff          = ctypes.c_byte(0)
-        self.hdrmd_config.reacq_activation_delay = ctypes.c_double(0.5)
-        self.hdrmd_config.reacq_restart_delay    = ctypes.c_double(1.0)
-        self.hdrmd_config.falsedet_enable        = ctypes.c_byte(1)
-        self.hdrmd_config.falsedet_oneshot       = ctypes.c_byte(1)
-        self.hdrmd_config.falsedet_thresh        = ctypes.c_double(0.5)
-        self.hdrmd_config.falsedet_period        = ctypes.c_double(2.0)
-        self.hdrmd_config.apsk_rr_oi             = ctypes.c_double(0.0)
-        self.hdrmd_config.apsk_rr_mi             = ctypes.c_double(0.0)
-        self.hdrmd_config.aeq_bypass             = ctypes.c_byte(1)
-        self.hdrmd_config.aeq_adpt_enable        = ctypes.c_byte(1)
-        self.hdrmd_config.aeq_cma_enable         = ctypes.c_byte(1)
-        self.hdrmd_config.aeq_2x_rate            = ctypes.c_byte(0)
-        self.hdrmd_config.cfe_enable             = ctypes.c_byte(0)
-        self.hdrmd_config.cfe_range              = ctypes.c_uint(0)
-        self.hdrmd_config.search_range           = ctypes.c_uint(5)
-        self.hdrmd_config.coarse_steps           = ctypes.c_uint(10)
+        # Set default driver parameters
+        self.base_address           = base_address
+        self.sample_rate            = 100000000
+        self.datapath_extension     = datapath_extension
+        self.symbol_rate            = 0
+        self.if_freq_offset         = 0
+        self.spectral_inversion     = False
+        self.ragc_enable            = True
+        self.ragc_invert            = True
+        self.tmtf_is_programmable   = False
+        self.tmtf_tap_length        = 0
+        self.tmtf_coeff_size        = 0
+        self.rrc_alpha              = 20
+        self.output_amplitude       = 1024
+        self.mer_period             = 10000
+        self.reacq_holdoff          = False
+        self.reacq_activation_delay = 0.5
+        self.reacq_restart_delay    = 1.0
+        self.falsedet_enable        = True
+        self.falsedet_oneshot       = True
+        self.falsedet_thresh        = 0.5
+        self.falsedet_period        = 2.0
+        self.apsk_rr_oi             = 0.0
+        self.apsk_rr_mi             = 0.0
+        self.aeq_bypass             = True
+        self.aeq_adpt_enable        = True
+        self.aeq_cma_enable         = True
+        self.aeq_2x_rate            = False
+        self.cfe_enable             = False
+        self.cfe_range              = 0
+        self.search_range           = 5
+        self.coarse_steps           = 10
 
-    def configure_demod(self, sample_rate, symbol_rate, modulation_scheme, rrc_alpha=20, if_freq_offset=0, aeq_enable=False):
-        self.hdrmd_config.sample_rate     = ctypes.c_uint(sample_rate)
-        self.hdrmd_config.symbol_rate     = ctypes.c_uint(symbol_rate)
-        self.hdrmd_config.rrc_alpha       = ctypes.c_uint(rrc_alpha)
-        self.hdrmd_config.if_freq_offset  = ctypes.c_uint(if_freq_offset)
-        self.hdrmd_config.aeq_bypass      = ctypes.c_byte(0 if aeq_enable else 1)
-        self.hdrmd_config.aeq_adpt_enable = ctypes.c_byte(aeq_enable)
-        self.hdrmd_config.aeq_cma_enable  = ctypes.c_byte(aeq_enable)
+        # Initialize driver structure
+        self.hdrmd_config = HDRMDCONFIG()
+        self.fill_driver_struct()
+
+    def fill_driver_struct(self):
+        self.hdrmd_config.base_address           = ctypes.c_ulong(4*self.base_address)  # convert to byte adress
+        self.hdrmd_config.sample_rate            = ctypes.c_uint(self.sample_rate)
+        self.hdrmd_config.datapath_extension     = ctypes.c_uint(self.datapath_extension)
+        self.hdrmd_config.symbol_rate            = ctypes.c_uint(self.symbol_rate)
+        self.hdrmd_config.if_freq_offset         = ctypes.c_uint(self.if_freq_offset)
+        self.hdrmd_config.spectral_inversion     = ctypes.c_byte(self.spectral_inversion)
+        self.hdrmd_config.ragc_enable            = ctypes.c_byte(self.ragc_enable)
+        self.hdrmd_config.ragc_invert            = ctypes.c_byte(self.ragc_invert)
+        self.hdrmd_config.tmtf_is_programmable   = ctypes.c_byte(self.tmtf_is_programmable)
+        self.hdrmd_config.tmtf_tap_length        = ctypes.c_uint(self.tmtf_tap_length)
+        self.hdrmd_config.tmtf_coeff_size        = ctypes.c_uint(self.tmtf_coeff_size)
+        self.hdrmd_config.rrc_alpha              = ctypes.c_uint(self.rrc_alpha)
+        self.hdrmd_config.output_amplitude       = ctypes.c_uint(self.output_amplitude)
+        self.hdrmd_config.mer_period             = ctypes.c_uint(self.mer_period)
+        self.hdrmd_config.reacq_holdoff          = ctypes.c_byte(self.reacq_holdoff)
+        self.hdrmd_config.reacq_activation_delay = ctypes.c_double(self.reacq_activation_delay)
+        self.hdrmd_config.reacq_restart_delay    = ctypes.c_double(self.reacq_restart_delay)
+        self.hdrmd_config.falsedet_enable        = ctypes.c_byte(self.falsedet_enable)
+        self.hdrmd_config.falsedet_oneshot       = ctypes.c_byte(self.falsedet_oneshot)
+        self.hdrmd_config.falsedet_thresh        = ctypes.c_double(self.falsedet_thresh)
+        self.hdrmd_config.falsedet_period        = ctypes.c_double(self.falsedet_period)
+        self.hdrmd_config.apsk_rr_oi             = ctypes.c_double(self.apsk_rr_oi)
+        self.hdrmd_config.apsk_rr_mi             = ctypes.c_double(self.apsk_rr_mi)
+        self.hdrmd_config.aeq_bypass             = ctypes.c_byte(self.aeq_bypass)
+        self.hdrmd_config.aeq_adpt_enable        = ctypes.c_byte(self.aeq_adpt_enable)
+        self.hdrmd_config.aeq_cma_enable         = ctypes.c_byte(self.aeq_cma_enable)
+        self.hdrmd_config.aeq_2x_rate            = ctypes.c_byte(self.aeq_2x_rate)
+        self.hdrmd_config.cfe_enable             = ctypes.c_byte(self.cfe_enable)
+        self.hdrmd_config.cfe_range              = ctypes.c_uint(self.cfe_range)
+        self.hdrmd_config.search_range           = ctypes.c_uint(self.search_range)
+        self.hdrmd_config.coarse_steps           = ctypes.c_uint(self.coarse_steps)
+
+    def configure_demod(self, sample_rate, symbol_rate, modulation_scheme, rrc_alpha=None, if_freq_offset=None, aeq_enable=None):
+        self.sample_rate = sample_rate
+        self.symbol_rate = symbol_rate
+
+        if rrc_alpha != None:
+            self.rrc_alpha = rrc_alpha
+
+        if if_freq_offset != None:
+            self.if_freq_offset = if_freq_offset
+
+        if aeq_enable != None:
+            self.aeq_bypass      = not aeq_enable
+            self.aeq_adpt_enable = aeq_enable
+            self.aeq_cma_enable  = aeq_enable
         
+        self.fill_driver_struct()
+
         if modulation_scheme.upper() == "BPSK":
             g_lib.zaltys_hdrm_demod_utils_config_bpsk(ctypes.byref(self.hdrmd_config))
         elif modulation_scheme.upper() == "QPSK":
