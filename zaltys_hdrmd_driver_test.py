@@ -32,6 +32,7 @@ import zaltys_hdrmd_driver
 gateway = zaltys_smpi_gateway.DummySmpiGateway()
 hdrmd   = zaltys_hdrmd_driver.HdrmdDriver(gateway, base_address=0x00000400)
 
-print('Configuring demodulator (sample_rate=125000000, symbol_rate=1000000, modulation_scheme="QPSK")...')
-hdrmd.configure_demod(sample_rate=125000000, symbol_rate=1000000, modulation_scheme="QPSK")
-print('Done\n')
+hdrmd.modulation_scheme = "16QAM"
+hdrmd.sample_rate = 125e6
+hdrmd.symbol_rate = 10e6
+hdrmd.configure_demod()

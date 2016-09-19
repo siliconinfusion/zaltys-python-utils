@@ -214,11 +214,11 @@ class HdrmmDriver (object):
         Configuration wrapper for the Zaltys HDRM Modulator
 
         Example usage:-
-          drv = HdrmmDriver(gateway, base_address=0x100)
-          drv.select_constellation_map(modulation_scheme="16QAM", map_scheme="IESS")
-          drv.sample_rate = 125e6
-          drv.symbol_rate = 10e6
-          drv.configure_mod()
+          hdrmm = HdrmmDriver(gateway, base_address=0x100)
+          hdrmm.select_constellation_map(modulation_scheme="16QAM", map_scheme="IESS")
+          hdrmm.sample_rate = 125e6
+          hdrmm.symbol_rate = 10e6
+          hdrmm.configure_mod()
     '''
     def __init__(self, smpi_gateway, base_address=0, legacy_mode=True, txfilt_num_taps=49, txfilt_full_coeff_width=14):
         self.smpi_gateway            = smpi_gateway

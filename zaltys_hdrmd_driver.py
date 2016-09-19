@@ -85,6 +85,12 @@ class HDRMDCONFIG(ctypes.Structure):
 
 
 #
+# HDRM Demodulator driver exceptions
+#
+class HdrmdDriverError(Exception): pass
+
+
+#
 # HDRM Demodulator driver class
 #
 # Instantiate a single instance of this class with an smpi_gateway
@@ -93,8 +99,15 @@ class HDRMDCONFIG(ctypes.Structure):
 class HdrmdDriver (object):
     '''
         Configuration wrapper for the Zaltys HDRM Demodulator
+
+        Example usage:-
+          hdrmd = HdrmdDriver(gateway, base_address=0x400)
+          hdrmd.modulation_scheme = "16QAM"
+          hdrmd.sample_rate = 125e6
+          hdrmd.symbol_rate = 10e6
+          hdrmd.configure_demod()
     '''
-    def __init__(self, smpi_gateway, base_address, datapath_extension=4):
+    def __init__(self, smpi_gateway, base_address=0, datapath_extension=4):
         global g_smpi_gateway, g_lib
 
         # Initialize module variables
@@ -124,6 +137,7 @@ class HdrmdDriver (object):
         g_lib.zaltys_hdrm_demod_set_callback_reg_done(self.reg_done_callback)
 
         # Set default driver parameters
+        self.modulation_scheme      = "QPSK"
         self.base_address           = base_address
         self.sample_rate            = 100000000
         self.datapath_extension     = datapath_extension
@@ -162,10 +176,10 @@ class HdrmdDriver (object):
 
     def fill_driver_struct(self):
         self.hdrmd_config.base_address           = ctypes.c_ulong(4*self.base_address)  # convert to byte adress
-        self.hdrmd_config.sample_rate            = ctypes.c_uint(self.sample_rate)
+        self.hdrmd_config.sample_rate            = ctypes.c_uint(int(self.sample_rate))
         self.hdrmd_config.datapath_extension     = ctypes.c_uint(self.datapath_extension)
-        self.hdrmd_config.symbol_rate            = ctypes.c_uint(self.symbol_rate)
-        self.hdrmd_config.if_freq_offset         = ctypes.c_uint(self.if_freq_offset)
+        self.hdrmd_config.symbol_rate            = ctypes.c_uint(int(self.symbol_rate))
+        self.hdrmd_config.if_freq_offset         = ctypes.c_uint(int(self.if_freq_offset))
         self.hdrmd_config.spectral_inversion     = ctypes.c_byte(self.spectral_inversion)
         self.hdrmd_config.ragc_enable            = ctypes.c_byte(self.ragc_enable)
         self.hdrmd_config.ragc_invert            = ctypes.c_byte(self.ragc_invert)
@@ -173,8 +187,8 @@ class HdrmdDriver (object):
         self.hdrmd_config.tmtf_tap_length        = ctypes.c_uint(self.tmtf_tap_length)
         self.hdrmd_config.tmtf_coeff_size        = ctypes.c_uint(self.tmtf_coeff_size)
         self.hdrmd_config.rrc_alpha              = ctypes.c_uint(self.rrc_alpha)
-        self.hdrmd_config.output_amplitude       = ctypes.c_uint(self.output_amplitude)
-        self.hdrmd_config.mer_period             = ctypes.c_uint(self.mer_period)
+        self.hdrmd_config.output_amplitude       = ctypes.c_uint(int(self.output_amplitude))
+        self.hdrmd_config.mer_period             = ctypes.c_uint(int(self.mer_period))
         self.hdrmd_config.reacq_holdoff          = ctypes.c_byte(self.reacq_holdoff)
         self.hdrmd_config.reacq_activation_delay = ctypes.c_double(self.reacq_activation_delay)
         self.hdrmd_config.reacq_restart_delay    = ctypes.c_double(self.reacq_restart_delay)
@@ -190,55 +204,43 @@ class HdrmdDriver (object):
         self.hdrmd_config.aeq_2x_rate            = ctypes.c_byte(self.aeq_2x_rate)
         self.hdrmd_config.cfe_enable             = ctypes.c_byte(self.cfe_enable)
         self.hdrmd_config.cfe_range              = ctypes.c_uint(self.cfe_range)
-        self.hdrmd_config.search_range           = ctypes.c_uint(self.search_range)
+        self.hdrmd_config.search_range           = ctypes.c_uint(int(self.search_range))
         self.hdrmd_config.coarse_steps           = ctypes.c_uint(self.coarse_steps)
 
-    def configure_demod(self, sample_rate, symbol_rate, modulation_scheme, rrc_alpha=None, if_freq_offset=None, aeq_enable=None):
-        self.sample_rate = sample_rate
-        self.symbol_rate = symbol_rate
-
-        if rrc_alpha != None:
-            self.rrc_alpha = rrc_alpha
-
-        if if_freq_offset != None:
-            self.if_freq_offset = if_freq_offset
-
-        if aeq_enable != None:
-            self.aeq_bypass      = not aeq_enable
-            self.aeq_adpt_enable = aeq_enable
-            self.aeq_cma_enable  = aeq_enable
-        
+    def configure_demod(self):
         self.fill_driver_struct()
 
-        if modulation_scheme.upper() == "BPSK":
+        if self.modulation_scheme.upper() == "BPSK":
             g_lib.zaltys_hdrm_demod_utils_config_bpsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "QPSK":
+        elif self.modulation_scheme.upper() == "QPSK":
             g_lib.zaltys_hdrm_demod_utils_config_qpsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "8PSK":
+        elif self.modulation_scheme.upper() == "8PSK":
             g_lib.zaltys_hdrm_demod_utils_config_8psk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "16QAM":
+        elif self.modulation_scheme.upper() == "16QAM":
             g_lib.zaltys_hdrm_demod_utils_config_16qam(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "OQPSK":
+        elif self.modulation_scheme.upper() == "OQPSK":
             g_lib.zaltys_hdrm_demod_utils_config_oqpsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "CQPSK":
+        elif self.modulation_scheme.upper() == "CQPSK":
             g_lib.zaltys_hdrm_demod_utils_config_cqpsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "DQPSK":
+        elif self.modulation_scheme.upper() == "DQPSK":
             g_lib.zaltys_hdrm_demod_utils_config_dqpsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "8QAM":
+        elif self.modulation_scheme.upper() == "8QAM":
             g_lib.zaltys_hdrm_demod_utils_config_8qam(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "16APSK":
+        elif self.modulation_scheme.upper() == "16APSK":
             g_lib.zaltys_hdrm_demod_utils_config_16apsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "32APSK":
+        elif self.modulation_scheme.upper() == "32APSK":
             g_lib.zaltys_hdrm_demod_utils_config_32apsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "8APSK":
+        elif self.modulation_scheme.upper() == "8APSK":
             g_lib.zaltys_hdrm_demod_utils_config_8apsk(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "64QAM":
+        elif self.modulation_scheme.upper() == "64QAM":
             g_lib.zaltys_hdrm_demod_utils_config_64qam(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "OS8QAM":
+        elif self.modulation_scheme.upper() == "OS8QAM":
             g_lib.zaltys_hdrm_demod_utils_config_os8qam(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "32QAM":
+        elif self.modulation_scheme.upper() == "32QAM":
             g_lib.zaltys_hdrm_demod_utils_config_32qam(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "C32QAM":
+        elif self.modulation_scheme.upper() == "C32QAM":
             g_lib.zaltys_hdrm_demod_utils_config_c32qam(ctypes.byref(self.hdrmd_config))
-        elif modulation_scheme.upper() == "C128QAM":
+        elif self.modulation_scheme.upper() == "C128QAM":
             g_lib.zaltys_hdrm_demod_utils_config_c128qam(ctypes.byref(self.hdrmd_config))
+        else:
+            raise HdrmdDriverError('Unknown modulation scheme: {}'.format(self.modulation_scheme))
