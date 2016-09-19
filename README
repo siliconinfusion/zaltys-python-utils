@@ -32,6 +32,11 @@ zaltys_hdrmd_driver
 A python module wrapper for the libzaltys-hdrmd shared-object library.
 
 
+zaltys_hdrmm_driver
+-------------------
+A pure python driver for the Zaltys HDRM Modulator.
+
+
 zaltys_plsv_utils
 -----------------
 Utilities for DVB-S2(X) frame properties based on PLS value lookup.
@@ -45,4 +50,4 @@ modem in loopback configuration.
 
 --
 Silicon Infusion Ltd
-24 August 2016
+19 September 2016
