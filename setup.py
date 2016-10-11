@@ -29,6 +29,7 @@ setup(name='zaltys-python-utils',
       author_email='paul_onions@siliconinfusion.com',
       py_modules=['zaltys_ad9361_driver',
                   'zaltys_hdrmd_driver',
+                  'zaltys_hdrmm_driver',
                   'zaltys_plsv_utils',
                   'zaltys_smpi_gateway',
                   'zaltys_zwire'])
