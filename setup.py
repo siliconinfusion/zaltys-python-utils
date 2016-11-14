@@ -32,4 +32,5 @@ setup(name='zaltys-python-utils',
                   'zaltys_hdrmm_driver',
                   'zaltys_plsv_utils',
                   'zaltys_smpi_gateway',
-                  'zaltys_zwire'])
+                  'zaltys_zwire',
+                  'libgse_wrapper'])
