@@ -22,6 +22,8 @@
 
 from ctypes import CDLL, c_ubyte, c_ushort, c_uint, c_size_t, c_void_p, POINTER, byref
 
+from ctypes.util import find_library
+
 
 #
 # Constants
@@ -64,10 +66,16 @@ class LibgseWrapper (object):
           rx_pdu_protocol = pdu[1]
           rx_pdu_bytes = pdu[2]
     '''
-    def __init__(self, num_channels=1, fifo_size=1024, libgse_path="/usr/lib/libgse.so"):
+    def __init__(self, num_channels=1, fifo_size=1024, libgse_path=None):
         self.num_channels = num_channels
         self.fifo_size = fifo_size
-        self.libgse = CDLL(libgse_path)
+
+        if libgse_path:
+            self.libgse_path = libgse_path
+        else:
+            self.libgse_path = find_library("gse")
+
+        self.libgse = CDLL(self.libgse_path)
 
         # Initialize libgse interface
         self.libgse.gse_create_vfrag_with_data.argtypes = [POINTER(c_void_p), c_size_t, c_size_t, c_size_t, POINTER(c_ubyte), c_size_t]
