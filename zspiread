@@ -29,7 +29,7 @@ import sys
 import zaltys_zwire
 
 if len(sys.argv) != 3:
-    print('usage: zwspiread <dspi_number> <address>')
+    print('usage: zspiread <dspi_number> <address>')
     exit(1)
 
 dspi    = int(sys.argv[1],0)
