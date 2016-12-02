@@ -37,7 +37,7 @@ class SmpiGateway(object):
 
 class ZwireSmpiGateway(SmpiGateway):
     '''
-        Coordinate access to SMPI registers via a Zwire interface object
+    Coordinate access to SMPI registers via a Zwire interface object
     '''
     def __init__(self, zwire):
         self.zwire = zwire
@@ -47,11 +47,41 @@ class ZwireSmpiGateway(SmpiGateway):
         self.zwire.close()
 
     def register_write(self, address, data):
+        '''
+        Write a single integer data value to a 32-bit register.
+        '''
         self.zwire.write(address, data)
 
+    def register_multi_write(self, address, data, sequential=False):
+        '''
+        Write a list of integer data values to 32-bit register(s).
+        If sequential is true then increment the address for each write,
+        otherwise keep the address constant (the default).
+        Length of data should be less than 2**16.
+        '''
+        if sequential:
+            self.zwire.seqWrite(address, data)
+        else:
+            self.zwire.rptWrite(address, data)
+
     def register_read(self, address):
-        rdata = self.zwire.read(address)
-        return rdata
+        '''
+        Read a single data value from a 32-bit register.  Return an integer.
+        '''
+        return self.zwire.read(address)
+
+    def register_multi_read(self, address, count, sequential=False):
+        '''
+        Read multiple data values from 32-bit register(s).
+        If sequential is true then increment the address for each read,
+        otherwise keep the address constant (the default).
+        Returns a list of integers.
+        Length of data should be less than 2**16.
+        '''
+        if sequential:
+            return self.zwire.seqRead(address, count)
+        else:
+            return self.zwire.rptRead(address, count)
 
 
 class DummySmpiGateway(SmpiGateway):
@@ -64,6 +94,19 @@ class DummySmpiGateway(SmpiGateway):
     def register_write(self, address, data):
         print("DummySmpiGateway write 0x{0:08x}".format(address) + " 0x{0:08x}".format(data))
 
+    def register_multi_write(self, address, data, sequential=False):
+        if sequential:
+            print("DummySmpiGateway multi write seq 0x{0:08x}".format(address) + " {}".format(data))
+        else:
+            print("DummySmpiGateway multi write rpt 0x{0:08x}".format(address) + " {}".format(data))
+
     def register_read(self, address):
         print("DummySmpiGateway read  0x{0:08x}".format(address))
         return 0
+
+    def register_multi_read(self, address, count, sequential=False):
+        if sequential:
+            print("DummySmpiGateway multi read seq  0x{0:08x}".format(address) + " {}".format(count))
+        else:
+            print("DummySmpiGateway multi read rpt  0x{0:08x}".format(address) + " {}".format(count))
+        return [0]*count

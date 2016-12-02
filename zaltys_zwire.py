@@ -19,7 +19,14 @@
 #
 # Running Zwire protocol over SPI and UART links.
 #
-# SPI routines interface to C SPI functions in libzaltys-zwire.so
+# All Zwire interface classes support the following methods:-
+#   open, close,
+#   read, rptRead, seqRead,
+#   write, rptWrite, seqWrite
+# so only call these methods if you want to be portable between SPI
+# and UART links.
+#
+# The SPI routines interface to C SPI functions in libzaltys-zwire.so
 #
 
 import ctypes
@@ -77,9 +84,20 @@ class ZwireSPI(Zwire):
             val = self.lib.zwspiRead(ctypes.c_int(self.fd), ctypes.c_ulong(_addr), ctypes.c_ushort(1), data)
         return data[0]
         
-    def seqRead(self, _addr, _count):
+    def rptRead(self, _addr, _count):
         '''
             Read multiple values from _addr using SPI bus.  Return list of values read.
+        '''
+        longArray = ctypes.c_ulong * _count
+        data = longArray(0)
+        if self.fd != -1:
+            val = self.lib.zwspiRead(ctypes.c_int(self.fd), ctypes.c_ulong(_addr), ctypes.c_ushort(_count), data)
+        return data
+
+    def seqRead(self, _addr, _count):
+        '''
+            Read values from sequential addresses, starting at_addr, using SPI bus.
+            Return list of values read.
         '''
         longArray = ctypes.c_ulong * _count
         data = longArray(0)
@@ -97,9 +115,22 @@ class ZwireSPI(Zwire):
             val = self.lib.zwspiWrite(ctypes.c_int(self.fd), ctypes.c_ulong(_addr), ctypes.c_ushort(1), data)
         return val
         
+    def rptWrite(self, _addr, _data):
+        '''
+            Write a list of values, _data, to the same address, _addr, using SPI bus.
+        '''
+        ret = []
+        longArray = ctypes.c_ulong * len(_data)
+        data = longArray(0)
+        for n in range(0, len(_data)):
+            data[n] = ctypes.c_uint(_data[n])
+        if self.fd != -1:
+            val = self.lib.zwspiWrite(ctypes.c_int(self.fd), ctypes.c_ulong(_addr), ctypes.c_ushort(len(_data)), data)
+        return val
+
     def seqWrite(self, _addr, _data):
         '''
-            Write a list of values, _data, to _addr using SPI bus.
+            Write a list of values, _data, to sequential addresses starting at _addr, using SPI bus.
         '''
         ret = []
         longArray = ctypes.c_ulong * len(_data)
@@ -167,36 +198,96 @@ class ZwireUART(Zwire):
         full_cmd = cmd + ":" + hex(check_sum)[2:].zfill(2)
         return full_cmd
         
+    def multiRead(self, address, count, seq=False):
+        '''Send a multi-read command, returning a list of integer register values.
+           If seq is true then read from sequentially increasing addresses,
+           otherwise do multiple reads from the same address (the default).
+           Count should be less than 2**16.
+        '''
+        self.uart.flushInput()
+
+        if seq:
+            cmd = self.appendCmdChkSum(self.CMD_GETSFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
+        else:
+            cmd = self.appendCmdChkSum(self.CMD_GETRFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
+
+        self.uart.write(bytes(cmd, encoding='ascii'))
+
+        # read the 4*count-byte response
+        response = [0]*(4*count)
+        for n in range(4*count):
+            response[n] = self.uart.read()[0]
+        
+        # return a list of register values
+        rtnval = [0]*count
+        for n in range(count):
+            rtnval[n] = response[4*n+0]*2**24 + response[4*n+1]*2**16 + response[4*n+2]*2**8 + response[4*n+3]
+        return rtnval
+
     def read(self, address):
         '''
             Read integer value from 32-bit register.
         '''
-        self.uart.flushInput()
-        count = 1
-        cmd = self.appendCmdChkSum(self.CMD_GETRFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
-        self.uart.write(bytes(cmd, encoding='ascii'))
+        return self.multiRead(address, 1)[0]
 
-        # read the 4-byte response
-        response = [0]*4
-        for n in range(4):
-            response[n] = self.uart.read()[0]
-        
-        return response[0]*2**24 + response[1]*2**16 + response[2]*2**8 + response[3]
+    def rptRead(self, address, count):
+        '''
+            Repeatedly read values from a 32-bit register.  Return a list of integers.
+            Count should be less than 2**16.
+        '''
+        return self.multiRead(address, count, seq=False)
+
+    def seqRead(self, address, count):
+        '''
+            Read values from sequential 32-bit registers, starting at address.
+            Return a list of integers.
+            Count should be less than 2**16.
+        '''
+        return self.multiRead(address, count, seq=True)
+
+    def multiWrite(self, address, data):
+        '''Send a multi-write command with the given list of integer data values.
+           If seq is true then write to sequentially increasing addresses,
+           otherwise do multiple writes to the same address (the default).
+           Length of data should be less than 2**16.
+        '''
+        self.uart.flushInput()
+        count = len(data)
+
+        if seq:
+            cmd = self.appendCmdChkSum(self.CMD_SETSFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
+        else:
+            cmd = self.appendCmdChkSum(self.CMD_SETRFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
+
+        for n in range(count):
+            byts = [0]*(4*count)
+            byts[4*n+0] = (data[n] // 2**24) % 256
+            byts[4*n+1] = (data[n] // 2**16) % 256
+            byts[4*n+2] = (data[n] // 2**8) % 256
+            byts[4*n+3] = data[n] % 256
+
+        self.uart.write(bytes(cmd, encoding='ascii'))
+        self.uart.write(bytearray(byts))
 
     def write(self, address, data):
         '''
             Write integer data value to 32-bit register.
         '''
-        self.uart.flushInput()
-        count = 1
-        cmd = self.appendCmdChkSum(self.CMD_SETRFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
-        byts = [0]*4
-        byts[0] = (data // 2**24) % 256
-        byts[1] = (data // 2**16) % 256
-        byts[2] = (data // 2**8) % 256
-        byts[3] = data % 256
-        self.uart.write(bytes(cmd, encoding='ascii'))
-        self.uart.write(bytearray(byts))
+        self.multiWrite(address, [data])
+
+    def rptWrite(self, address, data):
+        '''
+            Write list of integer data values to a 32-bit register.
+            Length of data should be less than 2**16.
+        '''
+        return self.multiWrite(address, data, seq=False)
+
+    def seqWrite(self, address, data):
+        '''
+            Write list of integer data values to sequential 32-bit registers, starting at address.
+            Length of data should be less than 2**16.
+        '''
+        return self.multiWrite(address, data, seq=True)
 
     def close(self):
         '''
@@ -233,9 +324,20 @@ class ZwireDummy(Zwire):
         print("ZwireDummy read " + str(_addr))
         return 0
         
-    def seqRead(self, _addr, _count):
+    def rptRead(self, _addr, _count):
         '''
             Pretend to read multiple values from _addr.  Return a list of values read.
+        '''
+        print("ZwireDummy rptRead " + str(_addr) + " " + str(_count))
+        ret = []
+        for n in range(0, _count):
+            ret.append(0)
+        return ret
+
+    def seqRead(self, _addr, _count):
+        '''
+            Pretend to read multiple values from sequential addresses, starting at _addr.
+            Return a list of values read.
         '''
         print("ZwireDummy SeqRead " + str(_addr) + " " + str(_count))
         ret = []
@@ -250,9 +352,16 @@ class ZwireDummy(Zwire):
         print("ZwireDummy write " + str(_addr) + " " + str(_data))
         return 0
         
-    def seqWrite(self, _addr, _data):
+    def rptWrite(self, _addr, _data):
         '''
             Pretend to write a list of values, _data, to _addr.
+        '''
+        print("ZwireDummy rptWrite " + str(_addr) + " " + str(_data))
+        return 0
+
+    def seqWrite(self, _addr, _data):
+        '''
+            Pretend to write a list of values, _data, to sequential addresses, starting at _addr.
         '''
         print("ZwireDummy seqWrite " + str(_addr) + " " + str(_data))
         return 0
