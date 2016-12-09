@@ -30,7 +30,6 @@
 #
 
 import ctypes
-import ctypes.util
 import serial
 
 
@@ -62,7 +61,7 @@ class ZwireSPI(Zwire):
         if libzaltys_zwire_path:
             self.libzaltys_zwire_path = libzaltys_zwire_path
         else:
-            self.libzaltys_zwire_path = ctypes.util.find_library("libzaltys-zwire.so")
+            self.libzaltys_zwire_path = "/usr/lib/libzaltys-zwire.so"
 
         self.lib = ctypes.CDLL(self.libzaltys_zwire_path)
        
