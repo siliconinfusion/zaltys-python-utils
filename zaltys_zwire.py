@@ -72,7 +72,7 @@ class ZwireSPI(Zwire):
             Class variable fd set to the returned file descriptor (fd).
             Assumes dspi class variable already set
         '''
-        self.fd = self.lib.zwspiOpen(ctypes.c_int(self.dspi))
+        self.fd = self.lib.zwspiOpen(ctypes.c_ubyte(self.dspi))
                 
     def read(self, _addr):
         '''
