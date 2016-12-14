@@ -20,7 +20,6 @@
 ##  A wrapper for the Zaltys AD9361 driver (libzaltys-ad9361.so).
 ##
 
-import os
 import ctypes
 
 #
@@ -142,6 +141,8 @@ class AD9361Driver (object):
         self.sample_rate = 61440000
         self.tx_carrier_freq = 1000000000
         self.rx_carrier_freq = 1000000000
+        self.tx_bandwidth = self.sample_rate//2
+        self.rx_bandwidth = self.sample_rate//2
 
     def init_ad9361(self, interface="CMOS"):
         global g_rf_phy
@@ -151,21 +152,24 @@ class AD9361Driver (object):
         else:
             g_rf_phy = g_lib.ad9361_lvds_init()
 
-    def set_ad9361_configuration(self, sample_rate=0, tx_carrier_freq=0, rx_carrier_freq=0):
-        if sample_rate > 0:
-            self.sample_rate = sample_rate
-            g_lib.ad9361_set_tx_sampling_freq(g_rf_phy, ctypes.c_ulong(sample_rate))
-            g_lib.ad9361_set_rx_sampling_freq(g_rf_phy, ctypes.c_ulong(sample_rate))
-            g_lib.ad9361_set_tx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(sample_rate/2))
-            g_lib.ad9361_set_rx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(sample_rate/2))
+    def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
+                                 tx_bandwidth=None, rx_bandwidth=None):
+        if sample_rate:     self.sample_rate     = int(sample_rate)
+        if tx_carrier_freq: self.tx_carrier_freq = int(tx_carrier_freq)
+        if tx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
+        if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
+        if rx_bandwidth:    self.rx_bandwidth    = int(rx_bandwidth)
 
-        if tx_carrier_freq > 0:
-            self.tx_carrier_freq = tx_carrier_freq
-            g_lib.ad9361_set_tx_lo_freq(g_rf_phy, ctypes.c_ulonglong(tx_carrier_freq))
+        self.tx_bandwidth = min(self.sample_rate//2, self.tx_bandwidth)
+        self.rx_bandwidth = min(self.sample_rate//2, self.rx_bandwidth)
 
-        if rx_carrier_freq > 0:
-            self.rx_carrier_freq = rx_carrier_freq
-            g_lib.ad9361_set_rx_lo_freq(g_rf_phy, ctypes.c_ulonglong(rx_carrier_freq))
+        g_lib.ad9361_set_tx_sampling_freq(g_rf_phy, ctypes.c_ulong(self.sample_rate))
+        g_lib.ad9361_set_rx_sampling_freq(g_rf_phy, ctypes.c_ulong(self.sample_rate))
+        g_lib.ad9361_set_tx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(self.tx_bandwidth))
+        g_lib.ad9361_set_rx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(self.rx_bandwidth))
+
+        g_lib.ad9361_set_tx_lo_freq(g_rf_phy, ctypes.c_ulonglong(self.tx_carrier_freq))
+        g_lib.ad9361_set_rx_lo_freq(g_rf_phy, ctypes.c_ulonglong(self.rx_carrier_freq))
 
     def get_ad9361_configuration(self):
         tx_sampling_freq = ctypes.c_ulong(0)
@@ -185,3 +189,21 @@ class AD9361Driver (object):
         g_lib.ad9361_get_rx_lo_freq(g_rf_phy, ctypes.byref(rx_lo_freq))
 
         return (tx_sampling_freq.value, rx_sampling_freq.value, tx_rf_bandwidth.value, rx_rf_bandwidth.value, tx_lo_freq.value, rx_lo_freq.value)
+
+    def update_ad9361_tx_configuration(self, carrier_freq=None, bandwidth=None):
+        if carrier_freq:
+            self.tx_carrier_freq = int(carrier_freq)
+            g_lib.ad9361_set_tx_lo_freq(g_rf_phy, ctypes.c_ulonglong(self.tx_carrier_freq))
+
+        if bandwidth:
+            self.tx_bandwidth = min(self.sample_rate//2, int(bandwidth))
+            g_lib.ad9361_set_tx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(self.tx_bandwidth))
+
+    def update_ad9361_rx_configuration(self, carrier_freq=None, bandwidth=None):
+        if carrier_freq:
+            self.rx_carrier_freq = int(carrier_freq)
+            g_lib.ad9361_set_rx_lo_freq(g_rf_phy, ctypes.c_ulonglong(self.rx_carrier_freq))
+
+        if bandwidth:
+            self.rx_bandwidth = min(self.sample_rate//2, int(bandwidth))
+            g_lib.ad9361_set_rx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(self.rx_bandwidth))
