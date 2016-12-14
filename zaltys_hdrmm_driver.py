@@ -245,13 +245,13 @@ class HdrmmDriver (object):
         self.txfilt_full_coeff_width = txfilt_full_coeff_width
 
         # Set default driver parameters
-        self.sample_rate       = 100000000
-        self.symbol_rate       = 1000000
-        self.constellation_map = zaltys_qpsk_constellation
-        self.rrc_alpha         = 20
-        self.free_running      = True
-        self.offset_mode       = False   # set to True for OQPSK support
-        self.spectral_invert   = False
+        self.sample_rate        = 100000000
+        self.symbol_rate        = 1000000
+        self.constellation_map  = zaltys_qpsk_constellation
+        self.rrc_alpha          = 20
+        self.free_running       = True
+        self.offset_mode        = False   # set to True for OQPSK support
+        self.spectral_inversion = False
 
     def select_constellation_map(self, modulation_scheme="QPSK", map_scheme="ZALTYS"):
         self.constellation_map = make_constellation_map(modulation_scheme, map_scheme)
@@ -301,7 +301,7 @@ class HdrmmDriver (object):
 
         # DAC control setup
         dac_ctrl = 0x00000302
-        if self.spectral_invert: dac_ctrl = dac_ctrl | 0x00000020
+        if self.spectral_inversion: dac_ctrl = dac_ctrl | 0x00000020
         self.smpi_gateway.register_write(self.base_address + 0x09, dac_ctrl)    # DAC_CTRL
         self.smpi_gateway.register_write(self.base_address + 0x0A, 0x00000000)  # DAC_IOFFSET
         self.smpi_gateway.register_write(self.base_address + 0x0B, 0x00000000)  # DAC_QOFFSET
