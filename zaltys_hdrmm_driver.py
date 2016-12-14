@@ -198,6 +198,21 @@ legacy_rrc_select = { 20 : legacy_rrc_20,
                       40 : legacy_rrc_40 }
 
 #
+# An easy-to-use function to access the above tables
+#
+def make_constellation_map(modulation_scheme="QPSK", map_scheme="ZALTYS"):
+    map = None
+    if map_scheme.upper() == "ZALTYS":
+        map = zaltys_constellation_select.get(modulation_scheme)
+    elif map_scheme.upper() == "IESS":
+        map = iess_constellation_select.get(modulation_scheme)
+    elif map_scheme.upper() == "GRAY":
+        map = gray_constellation_select.get(modulation_scheme)
+    if not map: raise HdrmmDriverError('Unknown modulation/mapping scheme: {}/{}'.format(modulation_scheme, map_scheme))
+    return map
+
+
+#
 # HDRM Modulator driver exceptions
 #
 class HdrmmDriverError(Exception): pass
@@ -215,7 +230,7 @@ class HdrmmDriver (object):
 
         Example usage:-
           hdrmm = HdrmmDriver(gateway, base_address=0x100)
-          hdrmm.select_constellation_map(modulation_scheme="16QAM", map_scheme="IESS")
+          hdrmm.constellation_map = make_constellation_map("16QAM", "IESS")
           hdrmm.sample_rate = 125e6
           hdrmm.symbol_rate = 10e6
           hdrmm.configure_mod()
@@ -236,19 +251,10 @@ class HdrmmDriver (object):
         self.rrc_alpha         = 20
         self.free_running      = True
         self.offset_mode       = False   # set to True for OQPSK support
+        self.spectral_invert   = False
 
     def select_constellation_map(self, modulation_scheme="QPSK", map_scheme="ZALTYS"):
-        if map_scheme.upper() == "ZALTYS":
-            self.constellation_map = zaltys_constellation_select.get(modulation_scheme)
-        elif map_scheme.upper() == "IESS":
-            self.constellation_map = iess_constellation_select.get(modulation_scheme)
-        elif map_scheme.upper() == "GRAY":
-            self.constellation_map = gray_constellation_select.get(modulation_scheme)
-        else:
-            raise HdrmmDriverError('Unknown map scheme: {}'.format(map_scheme))
-
-        if not self.constellation_map:
-            raise HdrmmDriverError('Unknown modulation/mapping scheme: {}/{}'.format(modulation_scheme, map_scheme))
+        self.constellation_map = make_constellation_map(modulation_scheme, map_scheme)
         
     def configure_mod(self):
         bits_per_symbol = int(round(math.log(len(self.constellation_map))/math.log(2)))
@@ -294,7 +300,9 @@ class HdrmmDriver (object):
             self.smpi_gateway.register_write(self.base_address + 0x10, 0x00000000)  # enable SPLL
 
         # DAC control setup
-        self.smpi_gateway.register_write(self.base_address + 0x09, 0x00000302)  # DAC_CTRL
+        dac_ctrl = 0x00000302
+        if self.spectral_invert: dac_ctrl = dac_ctrl | 0x00000020
+        self.smpi_gateway.register_write(self.base_address + 0x09, dac_ctrl)    # DAC_CTRL
         self.smpi_gateway.register_write(self.base_address + 0x0A, 0x00000000)  # DAC_IOFFSET
         self.smpi_gateway.register_write(self.base_address + 0x0B, 0x00000000)  # DAC_QOFFSET
         self.smpi_gateway.register_write(self.base_address + 0x0C, 0x00000000)  # DAC_GAIN_CAL
