@@ -81,6 +81,13 @@ def wait_for_spi_ready():
         None
 
 #
+# Base class for AD9361 objects
+#
+class AD9361 (object):
+    def __init__(self):
+        pass
+
+#
 # AD9361 driver class
 #
 # Instantiate a single instance of this class with an smpi_gateway
@@ -90,7 +97,7 @@ def wait_for_spi_ready():
 # method.  After this you can call set_ad9361_configuration() or
 # get_ad9361_configuration() as desired.
 #
-class AD9361Driver (object):
+class AD9361Driver (AD9361):
     '''
         Configuration wrapper for the AD9361 driver
     '''
@@ -207,3 +214,47 @@ class AD9361Driver (object):
         if bandwidth:
             self.rx_bandwidth = min(self.sample_rate//2, int(bandwidth))
             g_lib.ad9361_set_rx_rf_bandwidth(g_rf_phy, ctypes.c_ulong(self.rx_bandwidth))
+
+
+#
+# A dummy driver class for testing purposes
+#
+class AD9361Dummy (AD9361):
+    def __init__(self, smpi_gateway, smpi2spi_base_address):
+        print("AD9361Dummy __init__")
+        if smpi_gateway:          print("  smpi_gateway = " + str(smpi_gateway))
+        if smpi2spi_base_address: print("  smpi2spi_base_address = " + str(smpi2spi_base_address) + ')')
+
+    def init_ad9361(self, interface="CMOS"):
+        print("AD9361Dummy init_ad9361")
+        if interface: print("  interface = " + str(interface))
+
+    def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
+                                 tx_bandwidth=None, rx_bandwidth=None):
+        print("AD9361Dummy set_ad9361_configuration")
+        if sample_rate:     print("  sample_rate = " + str(sample_rate))
+        if tx_carrier_freq: print("  tx_carrier_freq = " + str(tx_carrier_freq))
+        if rx_carrier_freq: print("  rx_carrier_freq = " + str(rx_carrier_freq))
+        if tx_bandwidth:    print("  tx_bandwidth = " + str(tx_bandwidth))
+        if rx_bandwidth:    print("  rx_bandwidth = " + str(rx_bandwidth))
+
+    def get_ad9361_configuration(self):
+        print("AD9361Dummy get_ad9361_configuration")
+        print("  sample_rate = " + str(self.sample_rate))
+        print("  tx_carrier_freq = " + str(self.tx_carrier_freq))
+        print("  rx_carrier_freq = " + str(self.rx_carrier_freq))
+        print("  tx_bandwidth = " + str(self.tx_bandwidth))
+        print("  rx_bandwidth = " + str(self.rx_bandwidth))
+
+        return (self.tx_sampling_freq, self.rx_sampling_freq, self.tx_rf_bandwidth, self.rx_rf_bandwidth,
+                self.tx_lo_freq, self.rx_lo_freq)
+
+    def update_ad9361_tx_configuration(self, carrier_freq=None, bandwidth=None):
+        print("AD9361Dummy update_ad9361_tx_configuration")
+        print("  carrier_freq = " + str(carrier_freq))
+        print("  bandwidth = " + str(bandwidth))
+
+    def update_ad9361_rx_configuration(self, carrier_freq=None, bandwidth=None):
+        print("AD9361Dummy update_ad9361_rx_configuration")
+        print("  carrier_freq = " + str(carrier_freq))
+        print("  bandwidth = " + str(bandwidth))
