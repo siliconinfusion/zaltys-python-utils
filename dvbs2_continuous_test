@@ -31,9 +31,14 @@ import zaltys_smpi_gateway
 import zaltys_plsv_utils
 
 # Check command-line arguments
-if len(sys.argv) != 1:
-    print('usage: dvbs2_continuous_test')
+if len(sys.argv) > 2:
+    print('usage: dvbs2_continuous_test [s2x]')
     exit(1)
+
+enable_s2x = False
+if len(sys.argv) == 2:
+    if sys.argv[1] == 's2x':
+        enable_s2x = True
 
 # Setup SMPI gateway
 zwire   = zaltys_zwire.ZwireSPI(dspi=32)
@@ -174,7 +179,12 @@ reg_write(0x3020, 0x00000000)
 reg_write(0x3030, 0x00000000)
 
 while True:
-    for plsv in (dvbs2_pls_values + dvbs2x_pls_values):
+    if enable_s2x:
+        pls_values = dvbs2_pls_values + dvbs2x_pls_values
+    else:
+        pls_values = dvbs2_pls_values
+
+    for plsv in pls_values:
         print('PLSV = {}, transferring {} data bytes'.format(plsv, zaltys_plsv_utils.bbframe_byte_length(plsv)))
         data = send_frame(plsv)
         time.sleep(0.5)
