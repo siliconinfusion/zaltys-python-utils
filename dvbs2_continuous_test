@@ -36,7 +36,7 @@ if len(sys.argv) != 1:
     exit(1)
 
 # Setup SMPI gateway
-zwire   = zaltys_zwire.ZwireSPI(dspi=0)
+zwire   = zaltys_zwire.ZwireSPI(dspi=32)
 gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
 
 def reg_read(address):
