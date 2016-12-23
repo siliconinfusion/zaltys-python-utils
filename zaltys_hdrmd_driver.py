@@ -145,7 +145,7 @@ class HdrmdDriver (object):
         self.if_freq_offset         = 0
         self.spectral_inversion     = False
         self.ragc_enable            = True
-        self.ragc_invert            = True
+        self.ragc_invert            = False
         self.tmtf_is_programmable   = False
         self.tmtf_tap_length        = 0
         self.tmtf_coeff_size        = 0
