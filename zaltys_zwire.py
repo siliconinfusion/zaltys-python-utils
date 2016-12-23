@@ -51,7 +51,7 @@ class ZwireSPI(Zwire):
     '''
         Interface to ZwireSPI library functions
     '''
-    def __init__(self, dspi=0, libzaltys_zwire_path=None):
+    def __init__(self, dspi=32, libzaltys_zwire_path=None):
         '''
             Initialises .so library
         '''
@@ -302,7 +302,7 @@ class ZwireDummy(Zwire):
     '''
         A dummy Zwire interface for development purposes
     '''
-    def __init__(self, dspi=0):
+    def __init__(self, dspi=32):
         '''
             Initialise
         '''

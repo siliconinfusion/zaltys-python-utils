@@ -30,7 +30,7 @@ import zaltys_zwire
 import zaltys_smpi_gateway
 import zaltys_ad9361_driver
 
-zwire   = zaltys_zwire.ZwireSPI(dspi=0)
+zwire   = zaltys_zwire.ZwireSPI(dspi=32)
 gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
 ad9361  = zaltys_ad9361_driver.AD9361Driver(gateway, smpi2spi_base_address=0x00080000)
 
