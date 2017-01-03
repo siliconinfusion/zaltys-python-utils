@@ -277,7 +277,7 @@ class HdrmmDriver (object):
 
         sr = self.sample_rate/5
         iif = 0
-        while self.symbol_rate > sr:
+        while self.symbol_rate < sr:
             sr = sr/2
             iif = iif + 1
         nco = int(round((self.symbol_rate / self.sample_rate) * 2**iif * 2**28))
