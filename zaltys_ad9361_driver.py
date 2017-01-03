@@ -145,6 +145,7 @@ class AD9361Driver (AD9361):
         g_lib.ad9361_set_fn_axiadc_write(ctypes.c_void_p(0))
 
         # Initialize object attributes
+        self.interface = "CMOS"
         self.sample_rate = 61440000
         self.tx_carrier_freq = 1000000000
         self.rx_carrier_freq = 1000000000
@@ -155,8 +156,10 @@ class AD9361Driver (AD9361):
         global g_rf_phy
 
         if interface.upper() == "CMOS":
+            self.interface = "CMOS"
             g_rf_phy = g_lib.ad9361_cmos_init()
         else:
+            self.interface = "LVDS"
             g_rf_phy = g_lib.ad9361_lvds_init()
 
     def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
@@ -167,6 +170,11 @@ class AD9361Driver (AD9361):
         if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
         if rx_bandwidth:    self.rx_bandwidth    = int(rx_bandwidth)
 
+        # Ensure a sensible sample rate
+        if self.interface == "CMOS":
+            self.sample_rate = min(self.sample_rate, 61440000)
+
+        # Ensure sensible bandwidths
         self.tx_bandwidth = min(self.sample_rate//2, self.tx_bandwidth)
         self.rx_bandwidth = min(self.sample_rate//2, self.rx_bandwidth)
 
@@ -225,9 +233,22 @@ class AD9361Dummy (AD9361):
         if smpi_gateway:          print("  smpi_gateway = " + str(smpi_gateway))
         if smpi2spi_base_address: print("  smpi2spi_base_address = " + str(smpi2spi_base_address) + ')')
 
+        # Initialize object attributes
+        self.interface = "CMOS"
+        self.sample_rate = 61440000
+        self.tx_carrier_freq = 1000000000
+        self.rx_carrier_freq = 1000000000
+        self.tx_bandwidth = self.sample_rate//2
+        self.rx_bandwidth = self.sample_rate//2
+
     def init_ad9361(self, interface="CMOS"):
         print("AD9361Dummy init_ad9361")
         if interface: print("  interface = " + str(interface))
+
+        if interface.upper() == "CMOS":
+            self.interface = "CMOS"
+        else:
+            self.interface = "LVDS"
 
     def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
                                  tx_bandwidth=None, rx_bandwidth=None):
@@ -237,6 +258,14 @@ class AD9361Dummy (AD9361):
         if rx_carrier_freq: print("  rx_carrier_freq = " + str(rx_carrier_freq))
         if tx_bandwidth:    print("  tx_bandwidth = " + str(tx_bandwidth))
         if rx_bandwidth:    print("  rx_bandwidth = " + str(rx_bandwidth))
+
+        # Ensure a sensible sample rate
+        if self.interface == "CMOS":
+            self.sample_rate = min(self.sample_rate, 61440000)
+
+        # Ensure sensible bandwidths
+        self.tx_bandwidth = min(self.sample_rate//2, self.tx_bandwidth)
+        self.rx_bandwidth = min(self.sample_rate//2, self.rx_bandwidth)
 
     def get_ad9361_configuration(self):
         print("AD9361Dummy get_ad9361_configuration")
