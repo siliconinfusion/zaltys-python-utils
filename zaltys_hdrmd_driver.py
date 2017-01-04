@@ -162,8 +162,8 @@ class HdrmdDriver (object):
         self.apsk_rr_oi             = 0.0
         self.apsk_rr_mi             = 0.0
         self.aeq_bypass             = True
-        self.aeq_adpt_enable        = True
-        self.aeq_cma_enable         = True
+        self.aeq_adpt_enable        = False
+        self.aeq_cma_enable         = False
         self.aeq_2x_rate            = False
         self.cfe_enable             = False
         self.cfe_range              = 0
