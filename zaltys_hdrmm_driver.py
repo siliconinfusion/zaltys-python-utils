@@ -260,20 +260,28 @@ class HdrmmDriver (object):
         bits_per_symbol = int(round(math.log(len(self.constellation_map))/math.log(2)))
 
         # hold datapath in reset
-        self.smpi_gateway.register_write(self.base_address + 0x00, 0x00000001)
+        self.smpi_gateway.register_write(self.base_address + 0x00, 0x00000001) # SYS_CTRL
 
         # hold FIFO in reset
-        self.smpi_gateway.register_write(self.base_address + 0x04, 0x00010000)
+        self.smpi_gateway.register_write(self.base_address + 0x04, 0x00010000) # FIFO_CTRL
 
         # symbol mapper setup
-        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00010000)
+        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00010000) # MAP_PBASE
         for pt in self.constellation_map:
-            self.smpi_gateway.register_write(self.base_address + 0x07, pt)
-        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00000000)
-        self.smpi_gateway.register_write(self.base_address + 0x05, 0x00000000)
+            self.smpi_gateway.register_write(self.base_address + 0x07, pt)     # MAP_PBOX
+        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00000000) # MAP_PBASE
+        self.smpi_gateway.register_write(self.base_address + 0x05, 0x00000000) # MAP_CBASE
+
+        # add a constant symbol map for CW operation,
+        # to switch to it set MAP_CBASE to to 0x00000100
+        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00010100)     # MAP_PBASE
+        for n in range(0,256):
+            self.smpi_gateway.register_write(self.base_address + 0x07, 0x04000400) # MAP_PBOX
+        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00000000)     # MAP_PBASE
+        self.smpi_gateway.register_write(self.base_address + 0x05, 0x00000000)     # MAP_CBASE
 
         # interpolation filter and SPLL setup
-        self.smpi_gateway.register_write(self.base_address + 0x10, 0x00000001) # hold SPLL in reset
+        self.smpi_gateway.register_write(self.base_address + 0x10, 0x00000001) # SPLL_CTRL, hold SPLL in reset
 
         sr = self.sample_rate/5
         iif = 0
@@ -281,8 +289,8 @@ class HdrmmDriver (object):
             sr = sr/2
             iif = iif + 1
         nco = int(round((self.symbol_rate / self.sample_rate) * 2**iif * 2**28))
-        self.smpi_gateway.register_write(self.base_address + 0x08, iif)
-        self.smpi_gateway.register_write(self.base_address + 0x11, nco)
+        self.smpi_gateway.register_write(self.base_address + 0x08, iif)   # IIF_CTRL
+        self.smpi_gateway.register_write(self.base_address + 0x11, nco)   # SPLL_INCR
 
         self.smpi_gateway.register_write(self.base_address + 0x12, 1024)  # SPLL_LOCK_THRESH
         self.smpi_gateway.register_write(self.base_address + 0x13, 32768) # SPLL_UNLOCK_THRESH
