@@ -259,28 +259,29 @@ class HdrmmDriver (object):
     def configure_mod(self):
         bits_per_symbol = int(round(math.log(len(self.constellation_map))/math.log(2)))
 
-        # hold datapath in reset
+        # Hold datapath in reset
         self.smpi_gateway.register_write(self.base_address + 0x00, 0x00000001) # SYS_CTRL
 
-        # hold FIFO in reset
+        # Hold FIFO in reset
         self.smpi_gateway.register_write(self.base_address + 0x04, 0x00010000) # FIFO_CTRL
 
-        # symbol mapper setup
+        # Symbol mapper setup
         self.smpi_gateway.register_write(self.base_address + 0x06, 0x00010000) # MAP_PBASE
         for pt in self.constellation_map:
             self.smpi_gateway.register_write(self.base_address + 0x07, pt)     # MAP_PBOX
         self.smpi_gateway.register_write(self.base_address + 0x06, 0x00000000) # MAP_PBASE
         self.smpi_gateway.register_write(self.base_address + 0x05, 0x00000000) # MAP_CBASE
 
-        # add a constant symbol map for CW operation,
-        # to switch to it set MAP_CBASE to to 0x00000100
-        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00010100)     # MAP_PBASE
-        for n in range(0,256):
-            self.smpi_gateway.register_write(self.base_address + 0x07, 0x04000400) # MAP_PBOX
-        self.smpi_gateway.register_write(self.base_address + 0x06, 0x00000000)     # MAP_PBASE
-        self.smpi_gateway.register_write(self.base_address + 0x05, 0x00000000)     # MAP_CBASE
+        # If we can, add an alternative constant symbol map for CW operation,
+        # above the current symbol map.  To switch to it set MAP_CBASE to 0x00000080.
+        if bits_per_symbol <= 7:
+            self.smpi_gateway.register_write(self.base_address + 0x06, 0x00010080)     # MAP_PBASE
+            for n in range(0,2**bits_per_symbol):
+                self.smpi_gateway.register_write(self.base_address + 0x07, 0x04000400) # MAP_PBOX
+            self.smpi_gateway.register_write(self.base_address + 0x06, 0x00000000)     # MAP_PBASE
+            self.smpi_gateway.register_write(self.base_address + 0x05, 0x00000000)     # MAP_CBASE
 
-        # interpolation filter and SPLL setup
+        # Interpolation filter and SPLL setup
         self.smpi_gateway.register_write(self.base_address + 0x10, 0x00000001) # SPLL_CTRL, hold SPLL in reset
 
         sr = self.sample_rate/5
@@ -316,7 +317,7 @@ class HdrmmDriver (object):
         self.smpi_gateway.register_write(self.base_address + 0x0C, 0x00000000)  # DAC_GAIN_CAL
         self.smpi_gateway.register_write(self.base_address + 0x0D, 0x00002000)  # DAC_GAIN
         
-        # transmit filter setup
+        # Transmit filter setup
         if self.legacy_mode:
             rrc_coeffs = legacy_rrc_select.get(self.rrc_alpha)
             if rrc_coeffs:
@@ -332,8 +333,8 @@ class HdrmmDriver (object):
         else:
             self.smpi_gateway.register_write(self.base_address + 0x38, 0x00000000)
             
-        # release FIFO from reset, setting appropriate symbol size
+        # Release FIFO from reset, setting appropriate symbol size
         self.smpi_gateway.register_write(self.base_address + 0x04, bits_per_symbol-1)
 
-        # release datapath from reset
+        # Release datapath from reset
         self.smpi_gateway.register_write(self.base_address + 0x00, 0x00000000)
