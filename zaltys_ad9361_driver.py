@@ -80,6 +80,18 @@ def wait_for_spi_ready():
     while (g_smpi_gateway.register_read(g_smpi2spi_base_address+3)%2 == 1):
         None
 
+
+#
+# RF_RSSI structure
+#
+class RF_RSSI(ctypes.Structure):
+    _fields_ = [("ant",           ctypes.c_uint),
+                ("symbol",        ctypes.c_uint),
+                ("preamble",      ctypes.c_uint),
+                ("multiplier",    ctypes.c_int),
+                ("duration",      ctypes.c_byte)]
+
+
 #
 # Base class for AD9361 objects
 #
@@ -112,6 +124,7 @@ class AD9361Driver (AD9361):
         g_lib.ad9361_lvds_init.restype = ctypes.c_void_p
         g_lib.ad9361_write_rxbuf.restype = None
         g_lib.ad9361_read_rxbuf.restype  = ctypes.c_ubyte
+        g_lib.ad9361_get_rx_rssi.restype = ctypes.c_int
 
         # Setup SPI read/write callbacks
         #
@@ -204,6 +217,15 @@ class AD9361Driver (AD9361):
         g_lib.ad9361_get_rx_lo_freq(g_rf_phy, ctypes.byref(rx_lo_freq))
 
         return (tx_sampling_freq.value, rx_sampling_freq.value, tx_rf_bandwidth.value, rx_rf_bandwidth.value, tx_lo_freq.value, rx_lo_freq.value)
+
+    def get_ad9361_rf_rssi(self, channel=0):
+        rf_rssi = RF_RSSI()
+        g_lib.ad9361_get_rx_rssi(g_rf_phy, ctypes.c_byte(channel), ctypes.byref(rf_rssi))
+        try:
+            rssi = -1.0 * float(rf_rssi.symbol) / float(rf_rssi.multiplier)
+        except:
+            rssi = None
+        return rssi
 
     def update_ad9361_tx_configuration(self, carrier_freq=None, bandwidth=None):
         if carrier_freq:
