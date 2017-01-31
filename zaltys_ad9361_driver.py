@@ -300,6 +300,11 @@ class AD9361Dummy (AD9361):
         return (self.tx_sampling_freq, self.rx_sampling_freq, self.tx_rf_bandwidth, self.rx_rf_bandwidth,
                 self.tx_lo_freq, self.rx_lo_freq)
 
+    def get_ad9361_rf_rssi(self, channel=0):
+        print("AD9361Dummy get_ad9361_rf_rssi")
+        print("  channel = " + str(channel))
+        return -30
+
     def update_ad9361_tx_configuration(self, carrier_freq=None, bandwidth=None):
         print("AD9361Dummy update_ad9361_tx_configuration")
         print("  carrier_freq = " + str(carrier_freq))
