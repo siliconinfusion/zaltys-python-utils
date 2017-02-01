@@ -175,18 +175,18 @@ class HdrmdDriver (object):
         self.fill_driver_struct()
 
     def fill_driver_struct(self):
-        self.hdrmd_config.base_address           = ctypes.c_ulong(4*self.base_address)  # convert to byte adress
+        self.hdrmd_config.base_address           = ctypes.c_ulong(4*int(self.base_address))  # convert to byte adress
         self.hdrmd_config.sample_rate            = ctypes.c_uint(int(self.sample_rate))
-        self.hdrmd_config.datapath_extension     = ctypes.c_uint(self.datapath_extension)
+        self.hdrmd_config.datapath_extension     = ctypes.c_uint(int(self.datapath_extension))
         self.hdrmd_config.symbol_rate            = ctypes.c_uint(int(self.symbol_rate))
         self.hdrmd_config.if_freq_offset         = ctypes.c_uint(int(self.if_freq_offset))
         self.hdrmd_config.spectral_inversion     = ctypes.c_byte(self.spectral_inversion)
         self.hdrmd_config.ragc_enable            = ctypes.c_byte(self.ragc_enable)
         self.hdrmd_config.ragc_invert            = ctypes.c_byte(self.ragc_invert)
         self.hdrmd_config.tmtf_is_programmable   = ctypes.c_byte(self.tmtf_is_programmable)
-        self.hdrmd_config.tmtf_tap_length        = ctypes.c_uint(self.tmtf_tap_length)
-        self.hdrmd_config.tmtf_coeff_size        = ctypes.c_uint(self.tmtf_coeff_size)
-        self.hdrmd_config.rrc_alpha              = ctypes.c_uint(self.rrc_alpha)
+        self.hdrmd_config.tmtf_tap_length        = ctypes.c_uint(int(self.tmtf_tap_length))
+        self.hdrmd_config.tmtf_coeff_size        = ctypes.c_uint(int(self.tmtf_coeff_size))
+        self.hdrmd_config.rrc_alpha              = ctypes.c_uint(int(self.rrc_alpha))
         self.hdrmd_config.output_amplitude       = ctypes.c_uint(int(self.output_amplitude))
         self.hdrmd_config.mer_period             = ctypes.c_uint(int(self.mer_period))
         self.hdrmd_config.reacq_holdoff          = ctypes.c_byte(self.reacq_holdoff)
@@ -203,9 +203,9 @@ class HdrmdDriver (object):
         self.hdrmd_config.aeq_cma_enable         = ctypes.c_byte(self.aeq_cma_enable)
         self.hdrmd_config.aeq_2x_rate            = ctypes.c_byte(self.aeq_2x_rate)
         self.hdrmd_config.cfe_enable             = ctypes.c_byte(self.cfe_enable)
-        self.hdrmd_config.cfe_range              = ctypes.c_uint(self.cfe_range)
+        self.hdrmd_config.cfe_range              = ctypes.c_uint(int(self.cfe_range))
         self.hdrmd_config.search_range           = ctypes.c_uint(int(self.search_range))
-        self.hdrmd_config.coarse_steps           = ctypes.c_uint(self.coarse_steps)
+        self.hdrmd_config.coarse_steps           = ctypes.c_uint(int(self.coarse_steps))
 
     def configure_demod(self):
         self.fill_driver_struct()
