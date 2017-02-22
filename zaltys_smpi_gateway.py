@@ -25,8 +25,6 @@
 ##  (register_address = byte_address // 4).
 ##
 
-import time
-
 class SmpiGateway(object):
     '''
         Coordinate accesses to/from SMPI bus registers
@@ -43,7 +41,7 @@ class ZwireSmpiGateway(SmpiGateway):
         self.zwire = zwire
         zwire.open()
 
-    def __del__(self):
+    def close(self):
         self.zwire.close()
 
     def register_write(self, address, data):
