@@ -29,6 +29,7 @@
 # The SPI routines interface to C SPI functions in libzaltys-zwire.so
 #
 
+import sys
 import ctypes
 import serial
 
@@ -180,7 +181,10 @@ class ZwireUART(Zwire):
         self.uart = serial.Serial(self.port, self.baud, timeout=1, writeTimeout=1)
         self.uart.flushInput()
         cmd = self.appendCmdChkSum(self.CMD_GETVER)
-        self.uart.write(bytes(cmd, encoding='ascii'))
+        if sys.version_info.major == 2:
+            self.uart.write(bytes(cmd))
+        else:
+            self.uart.write(bytes(cmd, encoding='ascii'))
 
         # read the 18-byte response
         response = ""
@@ -210,12 +214,15 @@ class ZwireUART(Zwire):
         else:
             cmd = self.appendCmdChkSum(self.CMD_GETRFPGA + hex(address)[2:].zfill(8) + hex(count)[2:].zfill(4))
 
-        self.uart.write(bytes(cmd, encoding='ascii'))
+        if sys.version_info.major == 2:
+            self.uart.write(bytes(cmd))
+        else:
+            self.uart.write(bytes(cmd, encoding='ascii'))
 
         # read the 4*count-byte response
         response = [0]*(4*count)
         for n in range(4*count):
-            response[n] = self.uart.read()[0]
+            response[n] = ord(self.uart.read())
         
         # return a list of register values
         rtnval = [0]*count
@@ -244,7 +251,7 @@ class ZwireUART(Zwire):
         '''
         return self.multiRead(address, count, seq=True)
 
-    def multiWrite(self, address, data):
+    def multiWrite(self, address, data, seq=False):
         '''Send a multi-write command with the given list of integer data values.
            If seq is true then write to sequentially increasing addresses,
            otherwise do multiple writes to the same address (the default).
@@ -265,7 +272,11 @@ class ZwireUART(Zwire):
             byts[4*n+2] = (data[n] // 2**8) % 256
             byts[4*n+3] = data[n] % 256
 
-        self.uart.write(bytes(cmd, encoding='ascii'))
+        if sys.version_info.major == 2:
+            self.uart.write(bytes(cmd))
+        else:
+            self.uart.write(bytes(cmd, encoding='ascii'))
+
         self.uart.write(bytearray(byts))
 
     def write(self, address, data):
