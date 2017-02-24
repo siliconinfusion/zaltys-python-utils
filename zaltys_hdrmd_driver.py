@@ -39,7 +39,7 @@ def register_init(config):
 
 def register_write(address, data):
     # C driver supplies byte-address, need to convert to SMPI register-address
-    g_smpi_gateway.register_write(address//4, data)
+    g_smpi_gateway.register_write(int(address)//4, int(data))
 
 def register_barrier():
     None
