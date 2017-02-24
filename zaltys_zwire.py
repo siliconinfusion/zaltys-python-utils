@@ -178,7 +178,7 @@ class ZwireUART(Zwire):
             Open serial connection.  Return an 18-character version string
             obtained from the remote endpoint.
         '''
-        self.uart = serial.Serial(self.port, self.baud, timeout=1, writeTimeout=1)
+        self.uart = serial.Serial(self.port, self.baud)
         self.uart.flushInput()
         cmd = self.appendCmdChkSum(self.CMD_GETVER)
         if sys.version_info.major == 2:
