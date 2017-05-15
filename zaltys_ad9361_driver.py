@@ -275,6 +275,12 @@ class AD9361Dummy (AD9361):
     def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
                                  tx_bandwidth=None, rx_bandwidth=None):
         print("AD9361Dummy set_ad9361_configuration")
+        if sample_rate:     self.sample_rate     = int(sample_rate)
+        if tx_carrier_freq: self.tx_carrier_freq = int(tx_carrier_freq)
+        if tx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
+        if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
+        if rx_bandwidth:    self.rx_bandwidth    = int(rx_bandwidth)
+
         if sample_rate:     print("  sample_rate = " + str(sample_rate))
         if tx_carrier_freq: print("  tx_carrier_freq = " + str(tx_carrier_freq))
         if rx_carrier_freq: print("  rx_carrier_freq = " + str(rx_carrier_freq))
