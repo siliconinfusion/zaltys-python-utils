@@ -1,0 +1,43 @@
+#!/usr/bin/python
+
+##
+##  Author        : Paul Onions
+##  Creation date : 27 July 2017
+##
+##  COMMERCIAL IN CONFIDENCE
+##  (C) 2017 Silicon Infusion Limited
+##
+##  Silicon Infusion Limited                 
+##  CP House
+##  Otterspool Way
+##  Watford WD25 8HP
+##  Hertfordshire, UK
+##  Tel: +44 (0)1923 650404
+##  Fax: +44 (0)1923 650374
+##  Web: www.siliconinfusion.com
+##
+##  Licence: MIT, see LICENCE file for details.
+##
+
+##
+##  Read a register over the Zwire UART interface.
+##
+
+import os
+import sys
+
+import zaltys_zwire
+
+if len(sys.argv) != 3:
+    print('usage: zuartread <device> <address>')
+    exit(1)
+
+device  = str(sys.argv[1])
+address = int(sys.argv[2],0)
+
+zwire = zaltys_zwire.ZwireUART(device)
+
+zwire.open()
+rddat = zwire.read(address)
+print('0x{0:08x}'.format(rddat))
+zwire.close()
