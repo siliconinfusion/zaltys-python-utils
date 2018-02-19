@@ -2,7 +2,7 @@
 ##  Author        : Paul Onions
 ##  Creation date : 23 August 2016
 ##
-##  Copyright 2016 Silicon Infusion Limited
+##  Copyright 2016 - 2018 Silicon Infusion Limited
 ##
 ##  Silicon Infusion Limited
 ##  CP House
@@ -17,19 +17,23 @@
 ##
 
 ##
-##  Installation setup script for zaltys-python-utils.
+## Installation setup script for zaltys-python-utils.
+##
+##   pip install --upgrade <path-to-this-dir>
 ##
 
 from distutils.core import setup
 
 setup(name='zaltys-python-utils',
-      version='0.0',
+      version='1.3',
       description='Zaltys python utilities',
       author='Paul Onions',
       author_email='paul_onions@siliconinfusion.com',
       py_modules=['zaltys_ad9361_driver',
-                  'zaltys_hdrmd_driver',
                   'zaltys_hdrmm_driver',
+                  'zaltys_hdrmd_driver',
+                  'zaltys_dvbs2m_driver',
+                  'zaltys_dvbs2d_driver',
                   'zaltys_plsv_utils',
                   'zaltys_smpi_gateway',
                   'zaltys_zwire',
