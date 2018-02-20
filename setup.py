@@ -25,7 +25,7 @@
 from distutils.core import setup
 
 setup(name='zaltys-python-utils',
-      version='1.3',
+      version='1.4',
       description='Zaltys python utilities',
       author='Paul Onions',
       author_email='paul_onions@siliconinfusion.com',

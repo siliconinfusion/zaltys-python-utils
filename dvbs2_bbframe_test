@@ -21,6 +21,11 @@
 ##
 ## BBFRAME loopback test of DVB-S2 modem
 ##
+## Assumes we are running on a ZMP003-CPU card directly connected to
+## a ZMP003-FPGA card loaded with the ZMP003-DVBS2-MODEM-2_3 build.
+##
+## Assumes modulator and demodulator are already setup.
+##
 
 import sys
 import time

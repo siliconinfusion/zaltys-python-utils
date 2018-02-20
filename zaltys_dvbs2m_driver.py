@@ -134,6 +134,8 @@ class Dvbs2mDriver (object):
 
         Example usage:-
           dvbs2m = Dvbs2mDriver(gateway, base_address=0x100)
+          dvbs2m.ccm_mode = True
+          dvbs2m.pls_value = 4
           dvbs2m.sample_rate = 125e6
           dvbs2m.symbol_rate = 10e6
           dvbs2m.configure_mod()
@@ -153,13 +155,20 @@ class Dvbs2mDriver (object):
         self.rrc_alpha          = 20
         self.free_running       = True
         self.spectral_inversion = False
+        self.ccm_mode           = False
+        self.pls_value          = 0
 
     def configure_mod(self):
         # Hold datapath in reset
-        self.smpi_gateway.register_write(self.base_address + 0x100, 0x00000001) # FE: ENC_CONTROL
-        self.smpi_gateway.register_write(self.base_address + 0x200, 0x00000001) # PLF: PLF_CONTROL
-        self.smpi_gateway.register_write(self.base_address + 0x304, 0x00010000) # HDRMM: FIFO_CTRL
-        self.smpi_gateway.register_write(self.base_address + 0x300, 0x00000001) # HDRMM: SYS_CTRL
+        enc_control = 0x00000001
+        self.smpi_gateway.register_write(self.base_address + 0x100, enc_control) # FE: ENC_CONTROL
+        self.smpi_gateway.register_write(self.base_address + 0x200, 0x00000001)  # PLF: PLF_CONTROL
+        self.smpi_gateway.register_write(self.base_address + 0x304, 0x00010000)  # HDRMM: FIFO_CTRL
+        self.smpi_gateway.register_write(self.base_address + 0x300, 0x00000001)  # HDRMM: SYS_CTRL
+
+        # DVBS2FE CCM/VCM mode, enable BB scrambler
+        enc_control = enc_control | (self.pls_value << 16) | ((1 if self.ccm_mode else 0) << 6) | (1 << 5)
+        self.smpi_gateway.register_write(self.base_address + 0x100, enc_control) # ENC_CONTROL
 
         # HDRMM symbol mapper bypass
         self.smpi_gateway.register_write(self.base_address + 0x305, 0x00010000) # MAP_CBASE
@@ -219,7 +228,8 @@ class Dvbs2mDriver (object):
         self.smpi_gateway.register_write(self.base_address + 0x338, 0x00000000)
             
         # Release datapath from reset
-        self.smpi_gateway.register_write(self.base_address + 0x300, 0x00000000) # HDRMM: SYS_CTRL
-        self.smpi_gateway.register_write(self.base_address + 0x304, 0x00000000) # HDRMM: FIFO_CTRL
-        self.smpi_gateway.register_write(self.base_address + 0x200, 0x00000000) # PLF: PLF_CONTROL
-        self.smpi_gateway.register_write(self.base_address + 0x100, 0x00000000) # FE: ENC_CONTROL
+        self.smpi_gateway.register_write(self.base_address + 0x300, 0x00000000)  # HDRMM: SYS_CTRL
+        self.smpi_gateway.register_write(self.base_address + 0x304, 0x00000000)  # HDRMM: FIFO_CTRL
+        self.smpi_gateway.register_write(self.base_address + 0x200, 0x00000000)  # PLF: PLF_CONTROL
+        enc_control = enc_control & 0xFFFFFFFE
+        self.smpi_gateway.register_write(self.base_address + 0x100, enc_control) # FE: ENC_CONTROL

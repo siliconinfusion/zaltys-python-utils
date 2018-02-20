@@ -1,0 +1,98 @@
+#!/usr/bin/python
+
+##
+##  Author        : Paul Onions
+##  Creation date : 20 February 2018
+##
+##  Copyright 2018 Silicon Infusion Limited
+##
+##  Silicon Infusion Limited                 
+##  CP House
+##  Otterspool Way
+##  Watford WD25 8HP
+##  Hertfordshire, UK
+##  Tel: +44 (0)1923 650404
+##  Fax: +44 (0)1923 650374
+##  Web: www.siliconinfusion.com
+##
+##  Licence: MIT, see LICENCE file for details.
+##
+
+##
+## Example DVB-S2 modulator and demodulator setup
+##
+## Assumes we are running on a ZMP003-CPU card directly connected to
+## a ZMP003-FPGA card loaded with the ZMP003-DVBS2-MODEM-2_3 build.
+##
+## Modulator setup:
+##   PLSV = 4 (QPSK, normal frames, rate 1/4)
+##   Traffic: 11-bit PRBS stream after BBHEADER
+##   8 Msym/s
+##   1 GHz carrier
+##
+## Demodulator setup:
+##   VCM operation
+##   8 Msym/s
+##   1 GHz carrier
+##
+
+import zaltys_zwire
+import zaltys_smpi_gateway
+import zaltys_ad9361_driver
+import zaltys_dvbs2m_driver
+import zaltys_dvbs2d_driver
+
+# Setup communication to FPGAs
+zwire   = zaltys_zwire.ZwireSPI(dspi=32)
+gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
+
+# Initialize driver objects
+ad9361 = zaltys_ad9361_driver.AD9361Driver(gateway, smpi2spi_base_address=0x1000)
+dvbs2m = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000)
+dvbs2d = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400)
+
+# Initialize AD9361
+ad9361.init_ad9361(interface="LVDS")
+ad9361.set_ad9361_configuration(sample_rate=100000000, tx_carrier_freq=1000000000, rx_carrier_freq=1000000000)
+
+# Enable FMC/AD9361 datapath
+gateway.register_write(0xFF00, 0x00000002)
+
+# Set MDAT stream high and low buffer thresholds
+gateway.register_write(0x3022, 10000)
+gateway.register_write(0x3023,  9000)
+
+# Enable external PRBS generator, use OOB PLSV=4,
+# enable BBHEADER insertion with auto-DFL setting
+gateway.register_write(0x3029, 0x0004001F)
+
+# Reset encoder streaming data interface
+gateway.register_write(0x3020, 0x00000001)
+gateway.register_write(0x3020, 0x00000000)
+
+# Set DDAT stream high and low buffer thresholds
+gateway.register_write(0x3032, 10000)
+gateway.register_write(0x3033,     0)
+
+# Enable external data interface, use OOB PLSV,
+# enable BBHEADER removal
+gateway.register_write(0x3039, 0x0000000F)
+
+# Reset decoder streaming data interface
+gateway.register_write(0x3030, 0x00000001)
+gateway.register_write(0x3030, 0x00000000)
+
+# Initialize modulator
+dvbs2m.ccm_mode = False
+dvbs2m.sample_rate = 100e6
+dvbs2m.symbol_rate = 8e6
+dvbs2m.configure_mod()
+
+# Initialize demodulator
+dvbs2d.ccm_mode = False
+dvbs2d.sample_rate = 100e6
+dvbs2d.symbol_rate = 8e6
+dvbs2d.configure_demod()
+
+# Enable decoder operation -- release from reset
+gateway.register_write(0x2000, 0x00000000)
