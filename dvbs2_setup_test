@@ -35,6 +35,7 @@
 ##   8 Msym/s
 ##   1 GHz carrier
 ##
+import sys
 
 import zaltys_zwire
 import zaltys_smpi_gateway
@@ -42,14 +43,31 @@ import zaltys_ad9361_driver
 import zaltys_dvbs2m_driver
 import zaltys_dvbs2d_driver
 
+# Process command-line arguments
+if len(sys.argv) == 2 and sys.argv[1] == 'k325':
+    fpga_build = 'k325'
+elif len(sys.argv) == 2 and sys.argv[1] == 'k160':
+    fpga_build = 'k160'
+else:
+    print('usage: dvbs2_setup_test <k160|k325>')
+    exit(1)
+
 # Setup communication to FPGAs
 zwire   = zaltys_zwire.ZwireSPI(dspi=32)
 gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
 
 # Initialize driver objects
 ad9361 = zaltys_ad9361_driver.AD9361Driver(gateway, smpi2spi_base_address=0x1000)
-dvbs2m = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000)
-dvbs2d = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400)
+
+if fpga_build == 'k325':
+    dvbs2m = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000, legacy_mode=False, txfilt_num_taps=181, txfilt_full_coeff_width=14)
+elif fpga_build == 'k160':
+    dvbs2m = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000, legacy_mode=True, txfilt_num_taps=49, txfilt_full_coeff_width=14)
+
+if fpga_build == 'k325':
+    dvbs2d = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400, tmtf_is_programmable=True, tmtf_tap_length=101, tmtf_coeff_size=12)
+elif fpga_build == 'k160':
+    dvbs2d = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400, tmtf_is_programmable=True, tmtf_tap_length=49, tmtf_coeff_size=12)
 
 # Initialize AD9361
 ad9361.init_ad9361(interface="LVDS")

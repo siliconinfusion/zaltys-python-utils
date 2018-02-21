@@ -98,7 +98,7 @@ class Dvbs2dDriver (object):
           dvbs2d.symbol_rate = 10e6
           dvbs2d.configure_demod()
     '''
-    def __init__(self, smpi_gateway, base_address=0, datapath_extension=4):
+    def __init__(self, smpi_gateway, base_address=0, datapath_extension=4, tmtf_is_programmable=True, tmtf_tap_length=101, tmtf_coeff_size=12):
         global g_smpi_gateway, g_lib
 
         # Initialize module variables
@@ -136,9 +136,9 @@ class Dvbs2dDriver (object):
         self.spectral_inversion     = False
         self.ragc_enable            = True
         self.ragc_invert            = False
-        self.tmtf_is_programmable   = True
-        self.tmtf_tap_length        = 101
-        self.tmtf_coeff_size        = 12
+        self.tmtf_is_programmable   = tmtf_is_programmable
+        self.tmtf_tap_length        = tmtf_tap_length
+        self.tmtf_coeff_size        = tmtf_coeff_size
         self.rrc_alpha              = 20
         self.output_amplitude       = 1024
         self.mer_period             = 10000
