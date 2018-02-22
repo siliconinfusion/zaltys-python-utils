@@ -127,9 +127,16 @@ class Dvbs2fdDriver (object):
         self.smpi_gateway.register_write(self.base_address + 0x00, 0x00000001)
 
         # Set max iterations at this symbol rate for each PLSV
+        #
+        # Write them in reverse order because, for example, a DVB-S2 decoder
+        # will ignore the 8th bit of a DVB-S2X PLS value, meaning that two
+        # writes will be made to the same PLSV in the DVB-S2 decoder.  So write
+        # them in reverse order to ensure that the second write is the correct
+        # one.
+        #
         par_idx = {12:0, 24:1, 36:2, 60:3, 72:4, 120:5, 180:6}.get(self.par_level, None)
         if par_idx:
-            for plsv in range(0,512,2):
+            for plsv in range(510,-2,-2):
                 plsv_info = plsv_infos.get(plsv, None)
 
                 if plsv_info:
