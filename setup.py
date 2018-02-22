@@ -25,7 +25,7 @@
 from distutils.core import setup
 
 setup(name='zaltys-python-utils',
-      version='1.4',
+      version='1.5',
       description='Zaltys python utilities',
       author='Paul Onions',
       author_email='paul_onions@siliconinfusion.com',
@@ -34,6 +34,7 @@ setup(name='zaltys-python-utils',
                   'zaltys_hdrmd_driver',
                   'zaltys_dvbs2m_driver',
                   'zaltys_dvbs2d_driver',
+                  'zaltys_dvbs2fd_driver',
                   'zaltys_plsv_utils',
                   'zaltys_smpi_gateway',
                   'zaltys_zwire',

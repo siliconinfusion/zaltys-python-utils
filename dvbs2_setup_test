@@ -24,6 +24,16 @@
 ## Assumes we are running on a ZMP003-CPU card directly connected to
 ## a ZMP003-FPGA card loaded with the ZMP003-DVBS2-MODEM-2_3 build.
 ##
+## Invoke on the command line as either
+##
+##   ./dvbs2_setup_test k325
+##
+## for a Kintex-325 FPGA build, or
+##
+##   ./dvbs2_setup_test k160
+##
+## for a Kintex-160 FPGA build.
+##
 ## Modulator setup:
 ##   PLSV = 4 (QPSK, normal frames, rate 1/4)
 ##   Traffic: 11-bit PRBS stream after BBHEADER
@@ -42,6 +52,7 @@ import zaltys_smpi_gateway
 import zaltys_ad9361_driver
 import zaltys_dvbs2m_driver
 import zaltys_dvbs2d_driver
+import zaltys_dvbs2fd_driver
 
 # Process command-line arguments
 if len(sys.argv) == 2 and sys.argv[1] == 'k325':
@@ -60,14 +71,13 @@ gateway = zaltys_smpi_gateway.ZwireSmpiGateway(zwire)
 ad9361 = zaltys_ad9361_driver.AD9361Driver(gateway, smpi2spi_base_address=0x1000)
 
 if fpga_build == 'k325':
-    dvbs2m = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000, legacy_mode=False, txfilt_num_taps=181, txfilt_full_coeff_width=14)
+    dvbs2m  = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000, legacy_mode=False, txfilt_num_taps=181, txfilt_full_coeff_width=14)
+    dvbs2d  = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400, tmtf_is_programmable=True, tmtf_tap_length=101, tmtf_coeff_size=12)
+    dvbs2fd = zaltys_dvbs2fd_driver.Dvbs2fdDriver(gateway, base_address=0x2000, sysclk=200e6, par_level=180)
 elif fpga_build == 'k160':
-    dvbs2m = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000, legacy_mode=True, txfilt_num_taps=49, txfilt_full_coeff_width=14)
-
-if fpga_build == 'k325':
-    dvbs2d = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400, tmtf_is_programmable=True, tmtf_tap_length=101, tmtf_coeff_size=12)
-elif fpga_build == 'k160':
-    dvbs2d = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400, tmtf_is_programmable=True, tmtf_tap_length=49, tmtf_coeff_size=12)
+    dvbs2m  = zaltys_dvbs2m_driver.Dvbs2mDriver(gateway, base_address=0x0000, legacy_mode=True, txfilt_num_taps=49, txfilt_full_coeff_width=14)
+    dvbs2d  = zaltys_dvbs2d_driver.Dvbs2dDriver(gateway, base_address=0x0400, tmtf_is_programmable=True, tmtf_tap_length=49, tmtf_coeff_size=12)
+    dvbs2fd = zaltys_dvbs2fd_driver.Dvbs2fdDriver(gateway, base_address=0x2000, sysclk=175e6, par_level=120)
 
 # Initialize AD9361
 ad9361.init_ad9361(interface="LVDS")
@@ -112,5 +122,7 @@ dvbs2d.sample_rate = 100e6
 dvbs2d.symbol_rate = 8e6
 dvbs2d.configure_demod()
 
-# Enable decoder operation -- release from reset
-gateway.register_write(0x2000, 0x00000000)
+# Initialize decoder
+dvbs2fd.symbol_rate = 8e6
+dvbs2fd.configure_dec()
+
