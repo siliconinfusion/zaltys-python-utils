@@ -133,16 +133,16 @@ class Dvbs2fdDriver (object):
                 plsv_info = plsv_infos.get(plsv, None)
 
                 if plsv_info:
-                    bits_per_sym = plsv_info(0)
-                    code_idx = plsv_info(1)
-                    fsize = code_infos.get(code_idx)(0)
-                    kldpc = code_infos.get(code_idx)(1)
-                    clks = code_infos.get(code_idx)(2)(par_idx)
+                    bits_per_sym = plsv_info[0]
+                    code_idx = plsv_info[1]
+                    fsize = code_infos.get(code_idx)[0]
+                    kldpc = code_infos.get(code_idx)[1]
+                    clks = code_infos.get(code_idx)[2][par_idx]
                     par = self.par_level
 
                     avail = (self.sysclk/self.symbol_rate)*(fsize/bits_per_sym)
                     ovhd = (kldpc/par)*math.ceil(par/8) + (360/par)*(par+9)*math.ceil((fsize-kldpc)/2880) + 2*fsize/par + 500
-                    max_iters = min(math.floor((avail-ovhd)/clks)-1,255)
+                    max_iters = int(min(math.floor((avail-ovhd)/clks)-1,255))
                 else:
                     max_iters = 50
 
