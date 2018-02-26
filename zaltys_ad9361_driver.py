@@ -177,7 +177,11 @@ class AD9361Driver (AD9361):
 
     def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
                                  tx_bandwidth=None, rx_bandwidth=None):
-        if sample_rate:     self.sample_rate     = int(sample_rate)
+        if sample_rate:
+            self.sample_rate = int(sample_rate)
+            self.tx_bandwidth = min(self.sample_rate//2, 56000000)
+            self.rx_bandwidth = min(self.sample_rate//2, 56000000)
+
         if tx_carrier_freq: self.tx_carrier_freq = int(tx_carrier_freq)
         if tx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
         if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
@@ -188,8 +192,8 @@ class AD9361Driver (AD9361):
             self.sample_rate = min(self.sample_rate, 61440000)
 
         # Ensure sensible bandwidths
-        self.tx_bandwidth = min(self.sample_rate//2, self.tx_bandwidth)
-        self.rx_bandwidth = min(self.sample_rate//2, self.rx_bandwidth)
+        self.tx_bandwidth = min(self.tx_bandwidth, self.sample_rate//2, 56000000)
+        self.rx_bandwidth = min(self.rx_bandwidth, self.sample_rate//2, 56000000)
 
         g_lib.ad9361_set_tx_sampling_freq(g_rf_phy, ctypes.c_ulong(self.sample_rate))
         g_lib.ad9361_set_rx_sampling_freq(g_rf_phy, ctypes.c_ulong(self.sample_rate))
@@ -275,7 +279,11 @@ class AD9361Dummy (AD9361):
     def set_ad9361_configuration(self, sample_rate=None, tx_carrier_freq=None, rx_carrier_freq=None,
                                  tx_bandwidth=None, rx_bandwidth=None):
         print("AD9361Dummy set_ad9361_configuration")
-        if sample_rate:     self.sample_rate     = int(sample_rate)
+        if sample_rate:
+            self.sample_rate = int(sample_rate)
+            self.tx_bandwidth = min(self.sample_rate//2, 56000000)
+            self.rx_bandwidth = min(self.sample_rate//2, 56000000)
+
         if tx_carrier_freq: self.tx_carrier_freq = int(tx_carrier_freq)
         if tx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
         if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
@@ -292,8 +300,8 @@ class AD9361Dummy (AD9361):
             self.sample_rate = min(self.sample_rate, 61440000)
 
         # Ensure sensible bandwidths
-        self.tx_bandwidth = min(self.sample_rate//2, self.tx_bandwidth)
-        self.rx_bandwidth = min(self.sample_rate//2, self.rx_bandwidth)
+        self.tx_bandwidth = min(self.tx_bandwidth, self.sample_rate//2, 56000000)
+        self.rx_bandwidth = min(self.rx_bandwidth, self.sample_rate//2, 56000000)
 
     def get_ad9361_configuration(self):
         print("AD9361Dummy get_ad9361_configuration")
