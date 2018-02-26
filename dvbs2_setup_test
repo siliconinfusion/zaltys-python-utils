@@ -38,12 +38,12 @@
 ##   PLSV = 4 (QPSK, normal frames, rate 1/4)
 ##   Traffic: 11-bit PRBS stream after BBHEADER
 ##   8 Msym/s
-##   1 GHz carrier
+##   3.141592654 GHz carrier
 ##
 ## Demodulator setup:
 ##   VCM operation
 ##   8 Msym/s
-##   1 GHz carrier
+##   3.141592654 GHz carrier
 ##
 import sys
 
@@ -111,19 +111,23 @@ gateway.register_write(0x3039, 0x0000000F)
 gateway.register_write(0x3030, 0x00000001)
 gateway.register_write(0x3030, 0x00000000)
 
+# Modulation rate
+sample_rate = 100e6
+symbol_rate = 8e6
+
 # Initialize modulator
 dvbs2m.ccm_mode = False
-dvbs2m.sample_rate = 100e6
-dvbs2m.symbol_rate = 8e6
+dvbs2m.sample_rate = sample_rate
+dvbs2m.symbol_rate = symbol_rate
 dvbs2m.configure_mod()
 
 # Initialize demodulator
 dvbs2d.ccm_mode = False
-dvbs2d.sample_rate = 100e6
-dvbs2d.symbol_rate = 8e6
+dvbs2d.sample_rate = sample_rate
+dvbs2d.symbol_rate = symbol_rate
 dvbs2d.configure_demod()
 
 # Initialize decoder
-dvbs2fd.symbol_rate = 8e6
+dvbs2fd.symbol_rate = symbol_rate
 dvbs2fd.configure_dec()
 
