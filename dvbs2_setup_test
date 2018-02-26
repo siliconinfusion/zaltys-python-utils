@@ -81,7 +81,8 @@ elif fpga_build == 'k160':
 
 # Initialize AD9361
 ad9361.init_ad9361(interface="LVDS")
-ad9361.set_ad9361_configuration(sample_rate=100000000, tx_carrier_freq=1000000000, rx_carrier_freq=1000000000)
+ad9361.set_ad9361_configuration(sample_rate=100000000, tx_carrier_freq=3141592654, rx_carrier_freq=3141592654)
+print(ad9361.get_ad9361_configuration())
 
 # Enable FMC/AD9361 datapath
 gateway.register_write(0xFF00, 0x00000002)
