@@ -17,9 +17,10 @@
 ##
 
 ##
-##  A wrapper for the Zaltys HDRM Demodulator driver (libzaltys-hdrmd.so).
+## A wrapper for the Zaltys HDRM Demodulator driver (libzaltys-hdrmd.so).
 ##
-
+## Requires demodulator version 7.7 or compatible.
+##
 import ctypes
 
 #

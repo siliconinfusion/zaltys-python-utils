@@ -17,7 +17,9 @@
 ##
 
 ##
-##  A pure python driver for the Zaltys DVB-S2 FEC Decoder.
+## A pure python driver for the Zaltys DVB-S2 FEC Decoder.
+##
+## Requires decoder version 4.0 or compatible.
 ##
 import math
 

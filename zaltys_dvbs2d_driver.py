@@ -17,9 +17,10 @@
 ##
 
 ##
-##  A wrapper for the Zaltys DVB-S2 Demodulator driver (libzaltys-dvbs2d.so).
+## A wrapper for the Zaltys DVB-S2 Demodulator driver (libzaltys-dvbs2d.so).
 ##
-
+## Requires demodulator version 7.0 or compatible.
+##
 import ctypes
 
 #

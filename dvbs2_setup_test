@@ -22,17 +22,17 @@
 ## Example DVB-S2 modulator and demodulator setup
 ##
 ## Assumes we are running on a ZMP003-CPU card directly connected to
-## a ZMP003-FPGA card loaded with the ZMP003-DVBS2-MODEM-2_3 build.
+## a ZMP003-FPGA card loaded with the ZMP003-DVBS2-MODEM-2_4 build.
 ##
 ## Invoke on the command line as either
 ##
 ##   ./dvbs2_setup_test k325
 ##
-## for a Kintex-325 FPGA build, or
+## for a Kintex-325 FPGA build (DVB-S2X modem, with decoder PAR_LEVEL=180 & FDCLK=200MHz), or
 ##
 ##   ./dvbs2_setup_test k160
 ##
-## for a Kintex-160 FPGA build.
+## for a Kintex-160 FPGA build (DVB-S2 modem, with decoder PAR_LEVEL=120 & FDCLK=175MHz).
 ##
 ## Modulator setup:
 ##   PLSV = 4 (QPSK, normal frames, rate 1/4)

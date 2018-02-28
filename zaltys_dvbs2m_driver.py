@@ -17,7 +17,9 @@
 ##
 
 ##
-##  A pure python driver for the Zaltys DVB-S2 Baseband Modulator.
+## A pure python driver for the Zaltys DVB-S2 Baseband Modulator.
+##
+## Requires modulator version 3.2 or compatible.
 ##
 
 # 

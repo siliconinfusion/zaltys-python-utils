@@ -17,7 +17,9 @@
 ##
 
 ##
-##  A pure python driver for the Zaltys HDRM Modulator.
+## A pure python driver for the Zaltys HDRM Modulator.
+##
+## Requires modulator version 6.2 or compatible.
 ##
 import math
 
