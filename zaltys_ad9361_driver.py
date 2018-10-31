@@ -222,6 +222,14 @@ class AD9361Driver (AD9361):
 
         return (tx_sampling_freq.value, rx_sampling_freq.value, tx_rf_bandwidth.value, rx_rf_bandwidth.value, tx_lo_freq.value, rx_lo_freq.value)
 
+    def set_ad9361_tx_attenuation(self, atten_level, channel=0):
+        g_lib.ad9361_set_tx_attenuation(g_rf_phy, ctypes.c_byte(channel), ctypes.c_ulong(atten_level))
+
+    def get_ad9361_tx_attenuation(self, channel=0):
+        atten_level = ctypes.c_ulong(0)
+        g_lib.ad9361_get_tx_attenuation(g_rf_phy, ctypes.c_byte(channel), ctypes.byref(atten_level))
+        return atten_level.value
+
     def get_ad9361_rf_rssi(self, channel=0):
         rf_rssi = RF_RSSI()
         g_lib.ad9361_get_rx_rssi(g_rf_phy, ctypes.c_byte(channel), ctypes.byref(rf_rssi))
