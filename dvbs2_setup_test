@@ -82,8 +82,7 @@ elif fpga_build == 'k160':
 # Initialize AD9361
 ad9361.init_ad9361(interface="LVDS")
 ad9361.set_ad9361_configuration(sample_rate=100000000, tx_carrier_freq=3141592654, rx_carrier_freq=3141592654)
-#ad9361.set_ad9361_tx_attenuation(10000, channel=0)  # 10dB tx attenuation
-ad9361.set_ad9361_tx_attenuation(0, channel=0)  # 0dB tx attenuation
+ad9361.set_ad9361_tx_attenuation(10000, channel=0)  # 10dB tx attenuation
 print(ad9361.get_ad9361_configuration())
 
 # Enable FMC/AD9361 datapath
