@@ -183,7 +183,7 @@ class AD9361Driver (AD9361):
             self.rx_bandwidth = min(self.sample_rate//2, 56000000)
 
         if tx_carrier_freq: self.tx_carrier_freq = int(tx_carrier_freq)
-        if tx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
+        if rx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
         if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
         if rx_bandwidth:    self.rx_bandwidth    = int(rx_bandwidth)
 
@@ -293,7 +293,7 @@ class AD9361Dummy (AD9361):
             self.rx_bandwidth = min(self.sample_rate//2, 56000000)
 
         if tx_carrier_freq: self.tx_carrier_freq = int(tx_carrier_freq)
-        if tx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
+        if rx_carrier_freq: self.rx_carrier_freq = int(rx_carrier_freq)
         if tx_bandwidth:    self.tx_bandwidth    = int(tx_bandwidth)
         if rx_bandwidth:    self.rx_bandwidth    = int(rx_bandwidth)
 
